@@ -134,12 +134,10 @@ function App() {
       <div>
         <label htmlFor="ir">Choose ir</label>
         <input type="file" id="ir" accept="audio/*" onChange={onIRInput} disabled={!audioContext} />
-        <p>Please reload page to change IR</p>
       </div>
       <audio controls ref={diAudioRef}>
         <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
       </audio>
-      }
     </div>
   );
 }
