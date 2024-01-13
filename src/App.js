@@ -4,11 +4,11 @@ import { getCabConvolver } from './helpers/getCabConvolver';
 import './App.css';
 import { readProfile } from './helpers/readProfile';
 
-let audioContext, workletNode;
+let audioContext, audioWorkletNode;
 
 window.wasmAudioWorkletCreated = (node1, node2) => {
-  audioContext = node1;
-  workletNode = node2;
+  audioWorkletNode = node1;
+  audioContext = node2;
 
   const resumerBtn = document.getElementById('audio-worklet-resumer')
 
@@ -33,25 +33,25 @@ function App() {
       }
     });
 
-    workletNode.resume();
+    audioContext.resume();
 
     if (useDi) {
       const audioElement = diAudioRef.current;
-      const diTrackStreamSource = workletNode.createMediaElementSource(audioElement);
-      diTrackStreamSource.connect(audioContext);
+      const diTrackStreamSource = audioContext.createMediaElementSource(audioElement);
+      diTrackStreamSource.connect(audioWorkletNode);
     } else {
-      const microphoneStreamNode = workletNode.createMediaStreamSource(stream);
-      microphoneStreamNode.connect(audioContext);
+      const microphoneStreamNode = audioContext.createMediaStreamSource(stream);
+      microphoneStreamNode.connect(audioWorkletNode);
     }
 
-    audioContext.connect(cabConvolver);
-    cabConvolver.connect(workletNode.destination);
+    audioWorkletNode.connect(cabConvolver);
+    cabConvolver.connect(audioContext.destination);
     setIrReady(true);
   };
 
   const onIRInput = (event) => {
-    if (workletNode && event.target.files?.length) {
-      event.target.files[0].arrayBuffer().then(buffer => getCabConvolver(workletNode, buffer, onCabReady));
+    if (audioContext && event.target.files?.length) {
+      event.target.files[0].arrayBuffer().then(buffer => getCabConvolver(audioContext, buffer, onCabReady));
     }
   };
 
@@ -61,8 +61,8 @@ function App() {
       const ptr = Module._malloc(jsonStr.length + 1);
       Module.stringToUTF8(jsonStr, ptr, jsonStr.length + 1)
 
-      if (workletNode) {
-        workletNode.suspend();
+      if (audioContext) {
+        audioContext.suspend();
       }
 
       Module.ccall(
@@ -75,8 +75,8 @@ function App() {
         }
       ).then(() => {
         Module._free(ptr);
-        if (workletNode) {
-          workletNode.resume();
+        if (audioContext) {
+          audioContext.resume();
         }
       });
     };
@@ -96,7 +96,7 @@ function App() {
 
   return (
     <div className="App">
-      <button id="audio-worklet-resumer" onClick={onResume} disabled={!!window.audioContext}>Start playing</button>
+      <button id="audio-worklet-resumer" onClick={onResume} disabled={!!window.audioWorkletNode}>Start playing</button>
       <div>
         <label htmlFor="profile">Choose NAM profile</label>
         <input type="file" id="profile" accept=".nam" onChange={onProfileInput} disabled={!audioResumed} />
