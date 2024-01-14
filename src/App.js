@@ -43,6 +43,23 @@ function App() {
       audioContext.suspend();
     }
 
+    Module.ccall(
+      "setDsp",
+      null,
+      ["number"],
+      [ptr],
+      {
+        async: true,
+      }
+    ).then(() => {
+      Module._free(ptr);
+      if (audioContext) {
+        audioContext.resume();
+      }
+    });
+  };
+
+  useEffect(() => {
     window.wasmAudioWorkletCreated = (node1, node2) => {
       setAudioWorkletNode(node1);
       setAudioContext(node2);
@@ -66,7 +83,7 @@ function App() {
 
           microphoneStreamNodeRef.current = audioContext.createMediaStreamSource(microphoneStream);
 
-          if (useDiTrack) {
+          if (window.useDiTrack) {
             diTrackStreamSource.current.connect(audioWorkletNode);
           } else {
             microphoneStreamNodeRef.current.connect(audioWorkletNode);
@@ -76,22 +93,7 @@ function App() {
         });
       }
     };
-
-    Module.ccall(
-      "setDsp",
-      null,
-      ["number"],
-      [ptr],
-      {
-        async: true,
-      }
-    ).then(() => {
-      Module._free(ptr);
-      if (audioContext) {
-        audioContext.resume();
-      }
-    });
-  };
+  }, []);
 
   useEffect(() => {
     // if input mode is changed manually from the DOM
@@ -104,6 +106,8 @@ function App() {
         microphoneStreamNodeRef.current.connect(audioWorkletNode);
       }
     }
+    
+    window.useDiTrack = useDiTrack;
   }, [useDiTrack, audioWorkletNode]);
 
   const onProfileInput = (event) => {
