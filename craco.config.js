@@ -1,4 +1,4 @@
-const StyleXBabelPlugin = require('@stylexjs/babel-plugin');
+// const StyleXBabelPlugin = require('@stylexjs/babel-plugin');
 const StylexWebpackPlugin = require('@stylexjs/webpack-plugin');
 
 module.exports = {
@@ -8,6 +8,7 @@ module.exports = {
       "Cross-Origin-Embedder-Policy": "require-corp",
     },
   },
+  // instead this alternatively to webpack stylex plugin
   // babel: {
   //   plugins: [
   //     [

@@ -109,6 +109,8 @@ function App() {
   const onProfileInput = (event) => {
     readProfile(event).then((profile) => {
       loadProfile(profile);
+    }).catch((err) => {
+      console.log(err);
     });
   };
 
