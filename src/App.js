@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 
 import { getCabConvolver } from './helpers/getCabConvolver';
 import './App.css';
@@ -138,6 +139,8 @@ function App() {
       <audio controls ref={diAudioRef}>
         <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
       </audio>
+
+      <Analytics />
     </div>
   );
 }
