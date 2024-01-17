@@ -9,7 +9,7 @@ import { styles } from './styles';
 function App() {
   const diAudioRef = useRef();
   const [useDiTrack, setUseDiTrack] = useState(null);
-  const [ir, setIr] = useState();
+  const [ir, setIr] = useState(false);
   const [audioContext, setAudioContext] = useState();
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const microphoneStreamNodeRef = useRef();
@@ -22,6 +22,10 @@ function App() {
     if (ir) {
       audioWorkletNode.disconnect(ir);
       ir.disconnect(audioContext.destination);
+    }
+    // disconnect full-rig nam
+    else {
+      audioWorkletNode.disconnect(audioContext.destination);
     }
 
     audioWorkletNode.connect(cabConvolver);
@@ -89,6 +93,8 @@ function App() {
           } else {
             microphoneStreamNodeRef.current.connect(audioWorkletNode);
           }
+
+          audioWorkletNode.connect(audioContext.destination);
         }).catch((err) => {
           console.log('Error occured during input connecting', err);
         });
@@ -127,6 +133,26 @@ function App() {
     }
   };
 
+  const removeIr = () => {
+    if (audioContext && ir) {
+      audioWorkletNode.disconnect(ir);
+      ir.disconnect(audioContext.destination);
+      audioWorkletNode.connect(audioContext.destination);
+    }
+
+    setIr(false);
+  };
+
+  const setUseIr = (e) => {
+    const shouldUse = e.target.checked === true;
+
+    if (shouldUse) {
+      setIr(null);
+    } else {
+      removeIr();
+    }
+  };
+
   return (
     <div className="app" {...stylex.props(styles.app)}>
       {/* Just another way to resume audioContext from wasm glue code */}
@@ -140,9 +166,16 @@ function App() {
         <input type="file" id="profile" accept=".nam" onChange={onProfileInput} />
       </div>
       <div>
-        <label htmlFor="ir">Choose ir</label>
-        <input type="file" id="ir" accept="audio/*" onChange={onIRInput} disabled={!audioContext} />
+        <label htmlFor="use-ir">Use impulse response</label>
+        <input id="use-ir" type="checkbox" onClick={setUseIr} />
       </div>
+      {
+        ir !== false &&
+        <div>
+          <label htmlFor="ir">Choose ir</label>
+          <input type="file" id="ir" accept="audio/*" onChange={onIRInput} disabled={!audioContext} />
+        </div>
+      }
       <audio controls ref={diAudioRef}>
         <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
       </audio>
