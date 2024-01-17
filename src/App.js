@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import * as stylex from '@stylexjs/stylex';
 
 import { getCabConvolver } from './helpers/getCabConvolver';
-import './App.css';
 import { readProfile } from './helpers/readProfile';
+import { styles } from './styles';
 
 function App() {
   const diAudioRef = useRef();
@@ -19,8 +20,8 @@ function App() {
 
     // disconnect old impulse response
     if (ir) {
-      audioWorkletNode.disconnect();
-      ir.disconnect();
+      audioWorkletNode.disconnect(ir);
+      ir.disconnect(audioContext.destination);
     }
 
     audioWorkletNode.connect(cabConvolver);
@@ -30,7 +31,7 @@ function App() {
 
   const onIRInput = (event) => {
     if (audioContext && event.target.files?.length) {
-      event.target.files[0].arrayBuffer().then(buffer => getCabConvolver(audioContext, buffer, onCabChange));
+      event.target.files[0].arrayBuffer().then(buffer => getCabConvolver(audioContext, buffer, onCabChange, ir));
     }
   };
 
@@ -99,14 +100,14 @@ function App() {
     // if input mode is changed manually from the DOM
     if (useDiTrack !== null && microphoneStreamNodeRef.current && diTrackStreamSource.current && audioWorkletNode) {
       if (useDiTrack) {
-        microphoneStreamNodeRef.current.disconnect();
+        microphoneStreamNodeRef.current.disconnect(audioWorkletNode);
         diTrackStreamSource.current.connect(audioWorkletNode);
       } else {
-        diTrackStreamSource.current.disconnect();
+        diTrackStreamSource.current.disconnect(audioWorkletNode);
         microphoneStreamNodeRef.current.connect(audioWorkletNode);
       }
     }
-    
+
     window.useDiTrack = useDiTrack;
   }, [useDiTrack, audioWorkletNode]);
 
@@ -127,7 +128,7 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className="app" {...stylex.props(styles.app)}>
       {/* Just another way to resume audioContext from wasm glue code */}
       <button id="audio-worklet-resumer" disabled={window.audioWorkletNode}>Start/Resume playing</button>
       <div>
@@ -145,6 +146,15 @@ function App() {
       <audio controls ref={diAudioRef}>
         <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
       </audio>
+      <div>
+        {
+          audioContext &&
+          <>
+            <p>Base latency: {audioContext.baseLatency * 1000}ms</p>
+            <p>Output latency: {audioContext.outputLatency * 1000}ms</p>
+          </>
+        }
+      </div>
 
       <Analytics />
     </div>
