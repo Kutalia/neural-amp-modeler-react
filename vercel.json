@@ -12,12 +12,15 @@
           "value": "require-corp"
         }
       ]
-    }
-  ],
-  "rewrites": [
+    },
     {
       "source": "/*.wasm",
-      "headers": [{ "key": "content-type", "value": "application/wasm" }]
+      "headers": [
+        {
+          "key": "content-type",
+          "value": "application/wasm"
+        }
+      ]
     }
   ]
 }
