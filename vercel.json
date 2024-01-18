@@ -14,7 +14,7 @@
       ]
     },
     {
-      "source": "*.wasm",
+      "source": "/(.*\\.wasm)",
       "headers": [
         {
           "key": "content-type",
