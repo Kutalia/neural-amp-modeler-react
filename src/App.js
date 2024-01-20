@@ -186,15 +186,22 @@ function App() {
     <div className="app" {...stylex.props(styles.app)}>
       {/* Just another way to resume audioContext from wasm glue code */}
       <button id="audio-worklet-resumer" disabled={window.audioWorkletNode}>Start/Resume playing</button>
-      <KnobPercentage label="Input Gain" onChange={handleSetInputGain} />
-      <KnobPercentage label="Output Gain" onChange={handleSetOutputGain} />
+      <div {...stylex.props(styles.amp)}>
+        <h3 {...stylex.props(styles.ampTitle)}>Neural Amp Modeler Online</h3>
+        <div {...stylex.props(styles.ampControls)}>
+          <KnobPercentage label="Input" onChange={handleSetInputGain} />
+          <KnobPercentage label="Output" onChange={handleSetOutputGain} />
+        </div>
+        <div>
+          <p>
+            <label htmlFor="profile">Choose NAM profile</label>
+          </p>
+          <input type="file" id="profile" accept=".nam" onChange={onProfileInput} />
+        </div>
+      </div>
       <div>
         <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)</label>
         <input type="checkbox" id="input-mode" onChange={onInputModeChange} />
-      </div>
-      <div>
-        <label htmlFor="profile">Choose NAM profile</label>
-        <input type="file" id="profile" accept=".nam" onChange={onProfileInput} />
       </div>
       <div>
         <label htmlFor="use-ir">Use impulse response</label>

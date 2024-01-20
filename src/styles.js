@@ -4,7 +4,8 @@ export const styles = stylex.create({
   app: {
     textAlign: 'center',
     minHeight: '100vh',
-    backgroundColor: '#E5ECE9',
+    backgroundColor: '#0C0910',
+    color: 'white',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -12,6 +13,25 @@ export const styles = stylex.create({
   },
   highlighted: {
     color: 'rebeccapurple',
+  },
+  amp: {
+    backgroundColor: '#A393BF',
+    padding: '2rem 8rem',
+    borderRadius: '2rem',
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '1rem',
+    color: 'black',
+    border: '1px solid #FFFCFF',
+  },
+  ampTitle: {
+    fontSize: 'bold',
+  },
+  ampControls: {
+    display: 'flex',
+    gap: '2rem',
+    justifyContent: 'center',
   },
   knobBase: {
     width: '4rem',
@@ -33,7 +53,7 @@ export const styles = stylex.create({
     height: '100%',
     width: '100%',
     borderRadius: '16rem',
-    background: 'red',
+    background: '#FFFCFF',
   },
   knobBaseThumbWrapper2: {
     position: 'absolute',
