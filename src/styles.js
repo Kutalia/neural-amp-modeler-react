@@ -2,21 +2,44 @@ import * as stylex from '@stylexjs/stylex';
 
 export const styles = stylex.create({
   app: {
-    textAlign: 'center',
     minHeight: '100vh',
-    backgroundColor: '#0C0910',
+    background: 'linear-gradient(145deg, rgba(12,9,16,1) 0%, rgba(30,22,40,1) 44%, rgba(15,78,91,1) 100%)',
+    padding: '1rem',
+    boxSizing: 'border-box',
     color: 'white',
     display: 'flex',
     flexDirection: 'column',
+    width: '100%',
     alignItems: 'center',
     gap: '2rem',
+  },
+  workletResumer: {
+    display: 'none',
   },
   highlighted: {
     color: 'rebeccapurple',
   },
+  credits: {
+    width: '100%',
+    position: 'relative',
+    left: 0,
+    paddingLeft: '2rem',
+    boxSizing: 'border-box',
+  },
+  a: {
+    color: '#F6AE2D',
+    ':hover': {
+      color: '#B07507',
+    },
+  },
+  social: {
+    width: '3rem',
+    paddingRight: '1rem',
+    filter: 'invert(1)',
+  },
   amp: {
     backgroundColor: '#A393BF',
-    padding: '2rem 8rem',
+    padding: '2rem 3rem',
     borderRadius: '2rem',
     textAlign: 'center',
     display: 'flex',
@@ -26,7 +49,7 @@ export const styles = stylex.create({
     border: '1px solid #FFFCFF',
   },
   ampTitle: {
-    fontSize: 'bold',
+    fontFamily: 'effexor',
   },
   ampControls: {
     display: 'flex',

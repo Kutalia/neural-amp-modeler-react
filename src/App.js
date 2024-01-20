@@ -8,6 +8,8 @@ import { readProfile } from './helpers/readProfile';
 import { styles } from './styles';
 import { KnobPercentage } from './components/knob/KnobPercentage';
 import { calcDbToLinear } from './helpers/scaleDb';
+import { Announcement } from './components/Announcement';
+import { Footer } from './components/Footer';
 
 function App() {
   const diAudioRef = useRef();
@@ -185,7 +187,8 @@ function App() {
   return (
     <div className="app" {...stylex.props(styles.app)}>
       {/* Just another way to resume audioContext from wasm glue code */}
-      <button id="audio-worklet-resumer" disabled={window.audioWorkletNode}>Start/Resume playing</button>
+      <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
+      <Announcement />
       <div {...stylex.props(styles.amp)}>
         <h3 {...stylex.props(styles.ampTitle)}>Neural Amp Modeler Online</h3>
         <div {...stylex.props(styles.ampControls)}>
@@ -229,6 +232,8 @@ function App() {
 
       <Analytics />
       <SpeedInsights />
+
+      <Footer />
     </div>
   );
 }
