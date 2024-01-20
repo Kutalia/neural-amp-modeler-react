@@ -1,0 +1,1 @@
+"use strict";onmessage=function(d){onmessage=null;d=d.data;d["instantiateWasm"]=(info,receiveInstance)=>{var instance=new WebAssembly.Instance(d["wasm"],info);return receiveInstance(instance,d["wasm"])};importScripts(d.js);coreModule(d);d.wasm=d.mem=d.js=0};

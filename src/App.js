@@ -2,10 +2,13 @@ import { useRef, useState, useEffect } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import * as stylex from '@stylexjs/stylex';
+import { default as coreModuleFactory } from './loadwebmodel';
 
 import { getCabConvolver } from './helpers/getCabConvolver';
 import { readProfile } from './helpers/readProfile';
 import { styles } from './styles';
+
+// const coreModuleFactory = require('./loadwebmodel');
 
 function App() {
   const diAudioRef = useRef();
@@ -15,6 +18,7 @@ function App() {
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const microphoneStreamNodeRef = useRef();
   const diTrackStreamSource = useRef();
+  const [coreModule, setCoreModule] = useState();
 
   const onCabChange = (cabConvolver) => {
     audioContext.resume();
@@ -41,15 +45,14 @@ function App() {
   };
 
   const loadProfile = (jsonStr) => {
-    const { Module } = window
-    const ptr = Module._malloc(jsonStr.length + 1);
-    Module.stringToUTF8(jsonStr, ptr, jsonStr.length + 1)
+    const ptr = coreModule._malloc(jsonStr.length + 1);
+    coreModule.stringToUTF8(jsonStr, ptr, jsonStr.length + 1)
 
     if (audioContext) {
       audioContext.suspend();
     }
 
-    Module.ccall(
+    coreModule.ccall(
       "setDsp",
       null,
       ["number"],
@@ -58,7 +61,7 @@ function App() {
         async: true,
       }
     ).then(() => {
-      Module._free(ptr);
+      coreModule._free(ptr);
       if (audioContext) {
         audioContext.resume();
       }
@@ -118,6 +121,13 @@ function App() {
     window.useDiTrack = useDiTrack;
   }, [useDiTrack, audioWorkletNode]);
 
+  useEffect(() => {
+    coreModuleFactory().then((mod) => {
+      console.log('Core NAM wasm module initialized');
+      setCoreModule(mod);
+    });
+  }, []);
+
   const onProfileInput = (event) => {
     readProfile(event).then((profile) => {
       loadProfile(profile);
@@ -156,39 +166,45 @@ function App() {
 
   return (
     <div className="app" {...stylex.props(styles.app)}>
-      {/* Just another way to resume audioContext from wasm glue code */}
-      <button id="audio-worklet-resumer" disabled={window.audioWorkletNode}>Start/Resume playing</button>
-      <div>
-        <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)</label>
-        <input type="checkbox" id="input-mode" onChange={onInputModeChange} />
-      </div>
-      <div>
-        <label htmlFor="profile">Choose NAM profile</label>
-        <input type="file" id="profile" accept=".nam" onChange={onProfileInput} />
-      </div>
-      <div>
-        <label htmlFor="use-ir">Use impulse response</label>
-        <input id="use-ir" type="checkbox" onClick={setUseIr} />
-      </div>
       {
-        ir !== false &&
-        <div>
-          <label htmlFor="ir">Choose ir</label>
-          <input type="file" id="ir" accept="audio/*" onChange={onIRInput} disabled={!audioContext} />
-        </div>
-      }
-      <audio controls ref={diAudioRef}>
-        <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
-      </audio>
-      <div>
-        {
-          audioContext &&
-          <>
-            <p>Base latency: {audioContext.baseLatency * 1000}ms</p>
-            <p>Output latency: {audioContext.outputLatency * 1000}ms</p>
+        !coreModule
+          ? <p>Loading NAM Core WASM module</p>
+          : <>
+            {/* Just another way to resume audioContext from wasm glue code */}
+            <button id="audio-worklet-resumer" disabled={window.audioWorkletNode}>Start/Resume playing</button>
+            <div>
+              <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)</label>
+              <input type="checkbox" id="input-mode" onChange={onInputModeChange} />
+            </div>
+            <div>
+              <label htmlFor="profile">Choose NAM profile</label>
+              <input type="file" id="profile" accept=".nam" onChange={onProfileInput} />
+            </div>
+            <div>
+              <label htmlFor="use-ir">Use impulse response</label>
+              <input id="use-ir" type="checkbox" onClick={setUseIr} />
+            </div>
+            {
+              ir !== false &&
+              <div>
+                <label htmlFor="ir">Choose ir</label>
+                <input type="file" id="ir" accept="audio/*" onChange={onIRInput} disabled={!audioContext} />
+              </div>
+            }
+            <audio controls ref={diAudioRef}>
+              <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
+            </audio>
+            <div>
+              {
+                audioContext &&
+                <>
+                  <p>Base latency: {audioContext.baseLatency * 1000}ms</p>
+                  <p>Output latency: {audioContext.outputLatency * 1000}ms</p>
+                </>
+              }
+            </div>
           </>
-        }
-      </div>
+      }
 
       <Analytics />
       <SpeedInsights />
