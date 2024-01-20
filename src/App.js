@@ -6,6 +6,8 @@ import * as stylex from '@stylexjs/stylex';
 import { getCabConvolver } from './helpers/getCabConvolver';
 import { readProfile } from './helpers/readProfile';
 import { styles } from './styles';
+import { KnobPercentage } from './components/knob/KnobPercentage';
+import { calcDbToLinear } from './helpers/scaleDb';
 
 function App() {
   const diAudioRef = useRef();
@@ -14,7 +16,9 @@ function App() {
   const [audioContext, setAudioContext] = useState();
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const microphoneStreamNodeRef = useRef();
-  const diTrackStreamSource = useRef();
+  const diTrackStreamSourceRef = useRef();
+  const inputGainNodeRef = useRef();
+  const inputGainRef = useRef(1); // linear expression
 
   const onCabChange = (cabConvolver) => {
     audioContext.resume();
@@ -70,8 +74,9 @@ function App() {
       setAudioWorkletNode(node1);
       setAudioContext(node2);
 
-      // initializing various web audio nodes when user is interacting for the first time
+      inputGainNodeRef.current = new GainNode(node2, { gain: inputGainRef.current });
 
+      // initializing various web audio nodes when user is interacting for the first time
       if (!microphoneStreamNodeRef.current) {
         const audioWorkletNode = node1;
         const audioContext = node2;
@@ -85,16 +90,17 @@ function App() {
         }).then((microphoneStream) => {
           // preparing mic and di track nodes for quicker future switching
           const audioElement = diAudioRef.current;
-          diTrackStreamSource.current = audioContext.createMediaElementSource(audioElement);
+          diTrackStreamSourceRef.current = audioContext.createMediaElementSource(audioElement);
 
           microphoneStreamNodeRef.current = audioContext.createMediaStreamSource(microphoneStream);
 
           if (window.useDiTrack) {
-            diTrackStreamSource.current.connect(audioWorkletNode);
+            diTrackStreamSourceRef.current.connect(inputGainNodeRef.current);
           } else {
-            microphoneStreamNodeRef.current.connect(audioWorkletNode);
+            microphoneStreamNodeRef.current.connect(inputGainNodeRef.current);
           }
 
+          inputGainNodeRef.current.connect(audioWorkletNode);
           audioWorkletNode.connect(audioContext.destination);
         }).catch((err) => {
           console.log('Error occured during input connecting', err);
@@ -105,18 +111,18 @@ function App() {
 
   useEffect(() => {
     // if input mode is changed manually from the DOM
-    if (useDiTrack !== null && microphoneStreamNodeRef.current && diTrackStreamSource.current && audioWorkletNode) {
+    if (useDiTrack !== null && microphoneStreamNodeRef.current && diTrackStreamSourceRef.current && inputGainNodeRef.current) {
       if (useDiTrack) {
-        microphoneStreamNodeRef.current.disconnect(audioWorkletNode);
-        diTrackStreamSource.current.connect(audioWorkletNode);
+        microphoneStreamNodeRef.current.disconnect(inputGainNodeRef.current);
+        diTrackStreamSourceRef.current.connect(inputGainNodeRef.current);
       } else {
-        diTrackStreamSource.current.disconnect(audioWorkletNode);
-        microphoneStreamNodeRef.current.connect(audioWorkletNode);
+        diTrackStreamSourceRef.current.disconnect(inputGainNodeRef.current);
+        microphoneStreamNodeRef.current.connect(inputGainNodeRef.current);
       }
     }
 
     window.useDiTrack = useDiTrack;
-  }, [useDiTrack, audioWorkletNode]);
+  }, [useDiTrack]);
 
   const onProfileInput = (event) => {
     readProfile(event).then((profile) => {
@@ -154,10 +160,21 @@ function App() {
     }
   };
 
+  const handleSetInputGain = (val) => {
+    const linearGain = calcDbToLinear(val);
+    inputGainRef.current = linearGain;
+
+    if (inputGainNodeRef.current) {
+      inputGainNodeRef.current.gain.value = linearGain;
+      console.log(inputGainNodeRef.current.gain.value, linearGain);
+    }
+  }
+
   return (
     <div className="app" {...stylex.props(styles.app)}>
       {/* Just another way to resume audioContext from wasm glue code */}
       <button id="audio-worklet-resumer" disabled={window.audioWorkletNode}>Start/Resume playing</button>
+      <KnobPercentage label="Input Gain" onChange={handleSetInputGain} />
       <div>
         <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)</label>
         <input type="checkbox" id="input-mode" onChange={onInputModeChange} />
