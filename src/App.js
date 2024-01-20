@@ -19,6 +19,8 @@ function App() {
   const diTrackStreamSourceRef = useRef();
   const inputGainNodeRef = useRef();
   const inputGainRef = useRef(1); // linear expression
+  const outputGainNodeRef = useRef();
+  const outputGainRef = useRef(1);
 
   const onCabChange = (cabConvolver) => {
     audioContext.resume();
@@ -26,15 +28,15 @@ function App() {
     // disconnect old impulse response
     if (ir) {
       audioWorkletNode.disconnect(ir);
-      ir.disconnect(audioContext.destination);
+      ir.disconnect(outputGainNodeRef.current);
     }
-    // disconnect full-rig nam
+    // disconnect full-rig nam to reconnect it to ir
     else {
-      audioWorkletNode.disconnect(audioContext.destination);
+      audioWorkletNode.disconnect(outputGainNodeRef.current);
     }
 
     audioWorkletNode.connect(cabConvolver);
-    cabConvolver.connect(audioContext.destination);
+    cabConvolver.connect(outputGainNodeRef.current);
     setIr(cabConvolver);
   };
 
@@ -71,16 +73,17 @@ function App() {
 
   useEffect(() => {
     window.wasmAudioWorkletCreated = (node1, node2) => {
-      setAudioWorkletNode(node1);
-      setAudioContext(node2);
+      const audioWorkletNode = node1;
+      const audioContext = node2;
 
-      inputGainNodeRef.current = new GainNode(node2, { gain: inputGainRef.current });
+      setAudioWorkletNode(audioWorkletNode);
+      setAudioContext(audioContext);
+
+      inputGainNodeRef.current = new GainNode(audioContext, { gain: inputGainRef.current });
+      outputGainNodeRef.current = new GainNode(audioContext, { gain: outputGainRef.current });
 
       // initializing various web audio nodes when user is interacting for the first time
       if (!microphoneStreamNodeRef.current) {
-        const audioWorkletNode = node1;
-        const audioContext = node2;
-
         navigator.mediaDevices.getUserMedia({
           audio: {
             autoGainControl: false,
@@ -101,7 +104,8 @@ function App() {
           }
 
           inputGainNodeRef.current.connect(audioWorkletNode);
-          audioWorkletNode.connect(audioContext.destination);
+          audioWorkletNode.connect(outputGainNodeRef.current);
+          outputGainNodeRef.current.connect(audioContext.destination);
         }).catch((err) => {
           console.log('Error occured during input connecting', err);
         });
@@ -143,8 +147,8 @@ function App() {
   const removeIr = () => {
     if (audioContext && ir) {
       audioWorkletNode.disconnect(ir);
-      ir.disconnect(audioContext.destination);
-      audioWorkletNode.connect(audioContext.destination);
+      ir.disconnect(outputGainNodeRef.current);
+      audioWorkletNode.connect(outputGainNodeRef.current);
     }
 
     setIr(false);
@@ -166,15 +170,24 @@ function App() {
 
     if (inputGainNodeRef.current) {
       inputGainNodeRef.current.gain.value = linearGain;
-      console.log(inputGainNodeRef.current.gain.value, linearGain);
     }
-  }
+  };
+
+  const handleSetOutputGain = (val) => {
+    const linearGain = calcDbToLinear(val);
+    outputGainRef.current = linearGain;
+
+    if (outputGainNodeRef.current) {
+      outputGainNodeRef.current.gain.value = linearGain;
+    }
+  };
 
   return (
     <div className="app" {...stylex.props(styles.app)}>
       {/* Just another way to resume audioContext from wasm glue code */}
       <button id="audio-worklet-resumer" disabled={window.audioWorkletNode}>Start/Resume playing</button>
       <KnobPercentage label="Input Gain" onChange={handleSetInputGain} />
+      <KnobPercentage label="Output Gain" onChange={handleSetOutputGain} />
       <div>
         <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)</label>
         <input type="checkbox" id="input-mode" onChange={onInputModeChange} />
