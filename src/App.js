@@ -10,6 +10,7 @@ import { KnobPercentage } from './components/knob/KnobPercentage';
 import { calcDbToLinear } from './helpers/scaleDb';
 import { Announcement } from './components/Announcement';
 import { Footer } from './components/Footer';
+import { DirectorySelect } from './components/DirectorySelect';
 
 function App() {
   const diAudioRef = useRef();
@@ -17,6 +18,8 @@ function App() {
   const [ir, setIr] = useState(false);
   const [audioContext, setAudioContext] = useState();
   const [audioWorkletNode, setAudioWorkletNode] = useState();
+  const [profileLoading, setProfileLoading] = useState(false);
+
   const microphoneStreamNodeRef = useRef();
   const diTrackStreamSourceRef = useRef();
   const inputGainNodeRef = useRef();
@@ -48,7 +51,11 @@ function App() {
     }
   };
 
-  const loadProfile = (jsonStr) => {
+  const loadProfile = async (file) => {
+    setProfileLoading(true);
+    
+    const jsonStr = await readProfile(file);
+
     const { Module } = window
     const ptr = Module._malloc(jsonStr.length + 1);
     Module.stringToUTF8(jsonStr, ptr, jsonStr.length + 1)
@@ -57,7 +64,7 @@ function App() {
       audioContext.suspend();
     }
 
-    Module.ccall(
+    await Module.ccall(
       "setDsp",
       null,
       ["number"],
@@ -65,12 +72,14 @@ function App() {
       {
         async: true,
       }
-    ).then(() => {
-      Module._free(ptr);
-      if (audioContext) {
-        audioContext.resume();
-      }
-    });
+    )
+
+    Module._free(ptr);
+    if (audioContext) {
+      audioContext.resume();
+    }
+
+    setProfileLoading(false);
   };
 
   useEffect(() => {
@@ -130,12 +139,14 @@ function App() {
     window.useDiTrack = useDiTrack;
   }, [useDiTrack]);
 
-  const onProfileInput = (event) => {
-    readProfile(event).then((profile) => {
-      loadProfile(profile);
-    }).catch((err) => {
-      console.log(err);
-    });
+  const onProfileInput = (e) => {
+    if (!e.target.files?.length) {
+      return;
+    }
+
+    const file = e.target.files[0];
+
+    loadProfile(file);
   };
 
   const onInputModeChange = (e) => {
@@ -199,7 +210,8 @@ function App() {
           <p>
             <label htmlFor="profile">Choose NAM profile</label>
           </p>
-          <input type="file" id="profile" accept=".nam" onChange={onProfileInput} />
+          <input type="file" id="profile" accept=".nam" onChange={onProfileInput} disabled={profileLoading} />
+          <DirectorySelect label="Or an entire directory" fileExt=".nam" onFileSelect={loadProfile} disabled={profileLoading} />
         </div>
       </div>
       <div>
