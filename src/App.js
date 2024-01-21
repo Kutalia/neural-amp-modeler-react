@@ -12,6 +12,7 @@ import { calcDbToLinear } from './helpers/scaleDb';
 import { Announcement } from './components/Announcement';
 import { Footer } from './components/Footer';
 import { DirectorySelect } from './components/DirectorySelect';
+import { InputDevice } from './components/InputDevice';
 
 function App() {
   const diAudioRef = useRef();
@@ -21,8 +22,9 @@ function App() {
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const [profileLoading, setProfileLoading] = useState(false);
 
+  const microphoneStreamRef = useRef();
   const microphoneStreamNodeRef = useRef();
-  const diTrackStreamSourceRef = useRef();
+  const diTrackStreamNodeRef = useRef();
   const inputGainNodeRef = useRef();
   const inputGainRef = useRef(1); // linear expression
   const outputGainNodeRef = useRef();
@@ -95,46 +97,43 @@ function App() {
       inputGainNodeRef.current = new GainNode(audioContext, { gain: inputGainRef.current });
       outputGainNodeRef.current = new GainNode(audioContext, { gain: outputGainRef.current });
 
-      // initializing various web audio nodes when user is interacting for the first time
-      if (!microphoneStreamNodeRef.current) {
-        navigator.mediaDevices.getUserMedia({
-          audio: {
-            autoGainControl: false,
-            echoCancellation: false,
-            noiseSuppression: false,
-          }
-        }).then((microphoneStream) => {
-          // preparing mic and di track nodes for quicker future switching
-          const audioElement = diAudioRef.current;
-          diTrackStreamSourceRef.current = audioContext.createMediaElementSource(audioElement);
+      // preparing mic and di track nodes for quicker future switching
+      const audioElement = diAudioRef.current;
+      diTrackStreamNodeRef.current = audioContext.createMediaElementSource(audioElement);
 
-          microphoneStreamNodeRef.current = audioContext.createMediaStreamSource(microphoneStream);
+      const microphoneStream = microphoneStreamRef.current;
+      let microphoneStreamNode;
 
-          if (window.useDiTrack) {
-            diTrackStreamSourceRef.current.connect(inputGainNodeRef.current);
-          } else {
-            microphoneStreamNodeRef.current.connect(inputGainNodeRef.current);
-          }
-
-          inputGainNodeRef.current.connect(audioWorkletNode);
-          audioWorkletNode.connect(outputGainNodeRef.current);
-          outputGainNodeRef.current.connect(audioContext.destination);
-        }).catch((err) => {
-          console.log('Error occured during input connecting', err);
-        });
+      if (microphoneStream) {
+        microphoneStreamNode = audioContext.createMediaStreamSource(microphoneStream);
+        microphoneStreamNodeRef.current = microphoneStreamNode;
       }
+
+      if (window.useDiTrack) {
+        diTrackStreamNodeRef.current.connect(inputGainNodeRef.current);
+      } else if (microphoneStream) {
+        microphoneStreamNode.connect(inputGainNodeRef.current);
+      }
+
+      inputGainNodeRef.current.connect(audioWorkletNode);
+      audioWorkletNode.connect(outputGainNodeRef.current);
+      outputGainNodeRef.current.connect(audioContext.destination);
     };
   }, []);
 
   useEffect(() => {
     // if input mode is changed manually from the DOM
-    if (useDiTrack !== null && microphoneStreamNodeRef.current && diTrackStreamSourceRef.current && inputGainNodeRef.current) {
+    if (useDiTrack !== null && diTrackStreamNodeRef.current && inputGainNodeRef.current) {
+      const microphoneStreamNode = microphoneStreamNodeRef.current;
+
       if (useDiTrack) {
-        microphoneStreamNodeRef.current.disconnect(inputGainNodeRef.current);
-        diTrackStreamSourceRef.current.connect(inputGainNodeRef.current);
-      } else {
-        diTrackStreamSourceRef.current.disconnect(inputGainNodeRef.current);
-        microphoneStreamNodeRef.current.connect(inputGainNodeRef.current);
+        if (microphoneStreamNode) {
+          microphoneStreamNode.disconnect(inputGainNodeRef.current);
+        }
+        diTrackStreamNodeRef.current.connect(inputGainNodeRef.current);
+      } else if (microphoneStreamNode) {
+        diTrackStreamNodeRef.current.disconnect(inputGainNodeRef.current);
+        microphoneStreamNode.connect(inputGainNodeRef.current);
       }
     }
 
@@ -187,9 +186,38 @@ function App() {
     }
   };
 
+  const handleMicrophoneStreamChange = (stream) => {
+    // dsp already started
+    if (audioContext) {
+      // only disconnects if previously was used
+      try {
+        microphoneStreamNodeRef.current.disconnect(inputGainNodeRef.current);
+      } catch (err) {
+
+      } finally {
+        microphoneStreamNodeRef.current = audioContext.createMediaStreamSource(stream);
+      }
+
+      // put new input stream to use
+      if (!useDiTrack && inputGainNodeRef.current && diTrackStreamNodeRef.current) {
+        try {
+          diTrackStreamNodeRef.current.disconnect(inputGainNodeRef.current);
+        } catch (err) {
+
+        } finally {
+          microphoneStreamNodeRef.current.connect(inputGainNodeRef.current);
+        }
+      }
+    }
+
+    // if dsp is not yet started, it will be used for node creation on start
+    microphoneStreamRef.current = stream;
+  };
+
   return (
     <div className="app" {...stylex.props(styles.app)}>
       {/* Just another way to resume audioContext from wasm glue code */}
+      <InputDevice handleStream={handleMicrophoneStreamChange} />
       <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
       <Announcement />
       <div {...stylex.props(styles.amp)}>
