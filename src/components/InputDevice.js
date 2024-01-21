@@ -1,4 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import * as stylex from '@stylexjs/stylex';
+
+import { styles } from '../styles';
 
 export const InputDevice = ({ handleStream }) => {
   const [devices, setDevices] = useState([]);
@@ -53,12 +56,19 @@ export const InputDevice = ({ handleStream }) => {
   };
 
   return (
-    <select onChange={selectDevice} value={selectedIndex}>
-      {devices.map((device, index) => (
-        <option key={device.deviceId} value={index}>
-          {device.label}
-        </option>
-      ))}
-    </select>
+    <div {...stylex.props(styles.inputDeviceWrapper)}>
+      <p>Select Input Device</p>
+      <select
+        onChange={selectDevice}
+        value={selectedIndex}
+        {...stylex.props(styles.inputDevice)}
+      >
+        {devices.map((device, index) => (
+          <option key={device.deviceId} value={index}>
+            {device.label}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 };

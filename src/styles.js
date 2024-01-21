@@ -39,6 +39,13 @@ export const styles = stylex.create({
     paddingRight: '1rem',
     filter: 'invert(1)',
   },
+  inputDeviceWrapper: {
+    minWidth: '340px',
+    width: '30vw',
+  },
+  inputDevice: {
+    width: '100%',
+  },
   amp: {
     backgroundColor: '#A393BF',
     padding: '2rem 3rem',
