@@ -42,6 +42,7 @@ export const styles = stylex.create({
   inputDeviceWrapper: {
     minWidth: '340px',
     width: '30vw',
+    marginBottom: '-2rem',
   },
   inputDevice: {
     width: '100%',

@@ -57,7 +57,7 @@ export const InputDevice = ({ handleStream }) => {
 
   return (
     <div {...stylex.props(styles.inputDeviceWrapper)}>
-      <p>Select Input Device</p>
+      <p>Select an Input Device</p>
       <select
         onChange={selectDevice}
         value={selectedIndex}
