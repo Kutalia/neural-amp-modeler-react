@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import * as stylex from '@stylexjs/stylex';
 
+import './normalize.css';
 import { getCabConvolver } from './helpers/getCabConvolver';
 import { readProfile } from './helpers/readProfile';
 import { styles } from './styles';
@@ -45,9 +46,10 @@ function App() {
     setIr(cabConvolver);
   };
 
-  const onIRInput = (event) => {
-    if (audioContext && event.target.files?.length) {
-      event.target.files[0].arrayBuffer().then(buffer => getCabConvolver(audioContext, buffer, onCabChange, ir));
+  const onIRInput = (file) => {
+    if (audioContext) {
+      file.arrayBuffer()
+        .then(buffer => getCabConvolver(audioContext, buffer, onCabChange, ir));
     }
   };
 
@@ -197,27 +199,25 @@ function App() {
           <KnobPercentage label="Output" onChange={handleSetOutputGain} />
         </div>
         <DirectorySelect
-          label="Choose NAM profile or a directory"
+          label="Choose NAM profile"
           fileExt=".nam"
           onFileSelect={loadProfile}
           disabled={profileLoading}
         />
+        <DirectorySelect
+          label={<>
+            <span>Use IR (upload after profile)&nbsp;</span>
+            <input id="use-ir" type="checkbox" onClick={setUseIr} />
+          </>}
+          fileExt=".wav"
+          onFileSelect={onIRInput}
+          disabled={ir === false || profileLoading || !audioContext}
+        />
       </div>
       <div>
-        <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)</label>
+        <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)&nbsp;</label>
         <input type="checkbox" id="input-mode" onChange={onInputModeChange} />
       </div>
-      <div>
-        <label htmlFor="use-ir">Use impulse response</label>
-        <input id="use-ir" type="checkbox" onClick={setUseIr} />
-      </div>
-      {
-        ir !== false &&
-        <div>
-          <label htmlFor="ir">Choose ir</label>
-          <input type="file" id="ir" accept="audio/*" onChange={onIRInput} disabled={!audioContext} />
-        </div>
-      }
       <audio controls ref={diAudioRef}>
         <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
       </audio>
