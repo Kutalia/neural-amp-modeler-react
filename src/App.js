@@ -53,7 +53,7 @@ function App() {
 
   const loadProfile = async (file) => {
     setProfileLoading(true);
-    
+
     const jsonStr = await readProfile(file);
 
     const { Module } = window
@@ -139,16 +139,6 @@ function App() {
     window.useDiTrack = useDiTrack;
   }, [useDiTrack]);
 
-  const onProfileInput = (e) => {
-    if (!e.target.files?.length) {
-      return;
-    }
-
-    const file = e.target.files[0];
-
-    loadProfile(file);
-  };
-
   const onInputModeChange = (e) => {
     if (e.target.checked) {
       setUseDiTrack(true);
@@ -206,13 +196,12 @@ function App() {
           <KnobPercentage label="Input" onChange={handleSetInputGain} />
           <KnobPercentage label="Output" onChange={handleSetOutputGain} />
         </div>
-        <div>
-          <p>
-            <label htmlFor="profile">Choose NAM profile</label>
-          </p>
-          <input type="file" id="profile" accept=".nam" onChange={onProfileInput} disabled={profileLoading} />
-          <DirectorySelect label="Or an entire directory" fileExt=".nam" onFileSelect={loadProfile} disabled={profileLoading} />
-        </div>
+        <DirectorySelect
+          label="Choose NAM profile or a directory"
+          fileExt=".nam"
+          onFileSelect={loadProfile}
+          disabled={profileLoading}
+        />
       </div>
       <div>
         <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)</label>

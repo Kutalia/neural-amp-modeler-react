@@ -1,9 +1,11 @@
 import * as stylex from '@stylexjs/stylex';
 
+const nightColor = 'rgb(12,9,16)';
+
 export const styles = stylex.create({
   app: {
     minHeight: '100vh',
-    background: 'linear-gradient(145deg, rgba(12,9,16,1) 0%, rgba(30,22,40,1) 44%, rgba(15,78,91,1) 100%)',
+    background: `linear-gradient(145deg, ${nightColor} 0%, rgba(30,22,40,1) 44%, rgba(15,78,91,1) 100%)`,
     padding: '1rem',
     boxSizing: 'border-box',
     color: 'white',
@@ -67,6 +69,7 @@ export const styles = stylex.create({
   },
   knobHeadleess: {
     position: 'relative',
+    margin: '0.5rem 0',
     width: '4rem',
     height: '4rem',
     outline: 'none',
@@ -77,6 +80,8 @@ export const styles = stylex.create({
     width: '100%',
     borderRadius: '16rem',
     background: '#FFFCFF',
+    border: `1px solid ${nightColor}`,
+    boxShadow: `3px 1px 12px rgb(51, 44, 57)`,
   },
   knobBaseThumbWrapper2: {
     position: 'absolute',
@@ -90,6 +95,23 @@ export const styles = stylex.create({
     height: '50%',
     width: '2px',
     transform: 'translateX(50%)',
-    background: 'black',
-  }
+    background: nightColor,
+  },
+  directoryInputWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  directoryHiddenInput: {
+    visibility: 'hidden',
+    position: 'absolute',
+  },
+  directoryButton: {
+    width: '2rem',
+    cursor: 'pointer',
+  },
+  directoryFileSelect: {
+    width: '12rem',
+    margin: '0 0.5rem',
+  },
 });
