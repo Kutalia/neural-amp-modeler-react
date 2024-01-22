@@ -13,7 +13,7 @@ export const styles = stylex.create({
     flexDirection: 'column',
     width: '100%',
     alignItems: 'center',
-    gap: '2rem',
+    gap: '1rem',
   },
   workletResumer: {
     display: 'none',
@@ -42,7 +42,6 @@ export const styles = stylex.create({
   inputDeviceWrapper: {
     minWidth: '340px',
     width: '30vw',
-    marginBottom: '-2rem',
   },
   inputDevice: {
     width: '100%',

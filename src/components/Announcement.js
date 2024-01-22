@@ -3,9 +3,9 @@ export const Announcement = () => {
     <div>
       <h3>Instructions:</h3>
       <ol>
-        <li>Accept a microphone permission request if you want to play guitar</li>
+        <li>Accept the microphone permission request if you want to play guitar</li>
         <li>Choose a NAM profile file (.nam) from your computer</li>
-        <li>Optionally upload a Impulse Response file (.wav, .mp3, etc.)</li>
+        <li>Optionally upload an Impulse Response (.wav)</li>
       </ol>
     </div>
   );

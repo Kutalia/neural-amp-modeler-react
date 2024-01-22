@@ -21,6 +21,7 @@ function App() {
   const [audioContext, setAudioContext] = useState();
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const [profileLoading, setProfileLoading] = useState(false);
+  const [useRightChannel, setUseRightChannel] = useState(false);
 
   const microphoneStreamRef = useRef();
   const microphoneStreamNodeRef = useRef();
@@ -29,6 +30,8 @@ function App() {
   const inputGainRef = useRef(1); // linear expression
   const outputGainNodeRef = useRef();
   const outputGainRef = useRef(1);
+  const inputChannelMergerRef = useRef();
+  const inputChannelSplitterRef = useRef();
 
   const onCabChange = (cabConvolver) => {
     audioContext.resume();
@@ -87,54 +90,61 @@ function App() {
   };
 
   useEffect(() => {
-    window.wasmAudioWorkletCreated = (node1, node2) => {
-      const audioWorkletNode = node1;
-      const audioContext = node2;
+    if (!window.wasmAudioWorkletCreated) {
+      window.wasmAudioWorkletCreated = (node1, node2) => {
+        const audioWorkletNode = node1;
+        const audioContext = node2;
 
-      setAudioWorkletNode(audioWorkletNode);
-      setAudioContext(audioContext);
+        setAudioWorkletNode(audioWorkletNode);
+        setAudioContext(audioContext);
 
-      inputGainNodeRef.current = new GainNode(audioContext, { gain: inputGainRef.current });
-      outputGainNodeRef.current = new GainNode(audioContext, { gain: outputGainRef.current });
+        inputGainNodeRef.current = new GainNode(audioContext, { gain: inputGainRef.current });
+        outputGainNodeRef.current = new GainNode(audioContext, { gain: outputGainRef.current });
 
-      // preparing mic and di track nodes for quicker future switching
-      const audioElement = diAudioRef.current;
-      diTrackStreamNodeRef.current = audioContext.createMediaElementSource(audioElement);
+        // preparing track nodes for future switching
+        const audioElement = diAudioRef.current;
+        diTrackStreamNodeRef.current = audioContext.createMediaElementSource(audioElement);
 
-      const microphoneStream = microphoneStreamRef.current;
-      let microphoneStreamNode;
+        inputChannelMergerRef.current = audioContext.createChannelMerger(2);
+        inputChannelSplitterRef.current = audioContext.createChannelSplitter(2);
 
-      if (microphoneStream) {
-        microphoneStreamNode = audioContext.createMediaStreamSource(microphoneStream);
-        microphoneStreamNodeRef.current = microphoneStreamNode;
-      }
+        const microphoneStream = microphoneStreamRef.current;
+        let microphoneStreamNode;
 
-      if (window.useDiTrack) {
-        diTrackStreamNodeRef.current.connect(inputGainNodeRef.current);
-      } else if (microphoneStream) {
-        microphoneStreamNode.connect(inputGainNodeRef.current);
-      }
+        if (microphoneStream) {
+          microphoneStreamNode = audioContext.createMediaStreamSource(microphoneStream);
+          microphoneStreamNodeRef.current = microphoneStreamNode;
+        }
 
-      inputGainNodeRef.current.connect(audioWorkletNode);
-      audioWorkletNode.connect(outputGainNodeRef.current);
-      outputGainNodeRef.current.connect(audioContext.destination);
-    };
-  }, []);
+        if (window.useDiTrack) {
+          diTrackStreamNodeRef.current.connect(inputChannelSplitterRef.current);
+        } else if (microphoneStream) {
+          microphoneStreamNode.connect(inputChannelSplitterRef.current);
+        }
+
+        inputChannelSplitterRef.current.connect(inputChannelMergerRef.current, useRightChannel ? 1 : 0, 0);
+        inputChannelMergerRef.current.connect(inputGainNodeRef.current);
+        inputGainNodeRef.current.connect(audioWorkletNode);
+        audioWorkletNode.connect(outputGainNodeRef.current);
+        outputGainNodeRef.current.connect(audioContext.destination);
+      };
+    }
+  }, [useRightChannel]);
 
   useEffect(() => {
     // if input mode is changed manually from the DOM
-    if (useDiTrack !== null && diTrackStreamNodeRef.current && inputGainNodeRef.current) {
+    if (useDiTrack !== null && diTrackStreamNodeRef.current && inputChannelSplitterRef.current) {
       const microphoneStreamNode = microphoneStreamNodeRef.current;
 
       if (useDiTrack) {
         if (microphoneStreamNode) {
-          microphoneStreamNode.disconnect(inputGainNodeRef.current);
+          microphoneStreamNode.disconnect(inputChannelSplitterRef.current);
         }
-        diTrackStreamNodeRef.current.connect(inputGainNodeRef.current);
+        diTrackStreamNodeRef.current.connect(inputChannelSplitterRef.current);
       } else {
-        diTrackStreamNodeRef.current.disconnect(inputGainNodeRef.current);
+        diTrackStreamNodeRef.current.disconnect(inputChannelSplitterRef.current);
         if (microphoneStreamNode) {
-          microphoneStreamNode.connect(inputGainNodeRef.current);
+          microphoneStreamNode.connect(inputChannelSplitterRef.current);
         }
       }
     }
@@ -190,10 +200,10 @@ function App() {
 
   const handleMicrophoneStreamChange = (stream) => {
     // dsp already started
-    if (audioContext) {
+    if (audioContext && inputChannelSplitterRef.current) {
       // only disconnects if previously was used
       try {
-        microphoneStreamNodeRef.current.disconnect(inputGainNodeRef.current);
+        microphoneStreamNodeRef.current.disconnect(inputChannelSplitterRef.current);
       } catch (err) {
 
       } finally {
@@ -201,13 +211,13 @@ function App() {
       }
 
       // put new input stream to use
-      if (!useDiTrack && inputGainNodeRef.current && diTrackStreamNodeRef.current) {
+      if (!useDiTrack && diTrackStreamNodeRef.current) {
         try {
-          diTrackStreamNodeRef.current.disconnect(inputGainNodeRef.current);
+          diTrackStreamNodeRef.current.disconnect(inputChannelSplitterRef.current);
         } catch (err) {
 
         } finally {
-          microphoneStreamNodeRef.current.connect(inputGainNodeRef.current);
+          microphoneStreamNodeRef.current.connect(inputChannelSplitterRef.current);
         }
       }
     }
@@ -216,11 +226,32 @@ function App() {
     microphoneStreamRef.current = stream;
   };
 
+  const handleMicrophoneChannelChange = (e) => {
+    const useRight = !!e.target.checked;
+    setUseRightChannel(useRight);
+
+    const merger = inputChannelMergerRef.current;
+    const splitter = inputChannelSplitterRef.current;
+    const gain = inputGainNodeRef.current;
+
+    if (splitter && merger && gain) {
+      splitter.disconnect(merger, useRight ? 0 : 1, 0);
+
+      splitter.connect(merger, useRight ? 1 : 0, 0);
+    }
+  }
+
   return (
     <div className="app" {...stylex.props(styles.app)}>
-      {/* Just another way to resume audioContext from wasm glue code */}
       <InputDevice handleStream={handleMicrophoneStreamChange} />
-      <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
+      <p>
+        <label htmlFor="use-right-channel">
+          Use Right Channel <small>(try this if you're connected to a channel on an even position: Input 2, Input 4, etc.)</small>
+        </label>
+        &nbsp;
+        <input type="checkbox" id="use-right-channel" onChange={handleMicrophoneChannelChange} />
+      </p>
+
       <Announcement />
       <div {...stylex.props(styles.amp)}>
         <h3 {...stylex.props(styles.ampTitle)}>Neural Amp Modeler Online</h3>
@@ -265,6 +296,9 @@ function App() {
       <SpeedInsights />
 
       <Footer />
+
+      {/* Just another way to resume audioContext from wasm glue code */}
+      <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
     </div>
   );
 }
