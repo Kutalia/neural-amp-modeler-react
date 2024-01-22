@@ -131,9 +131,11 @@ function App() {
           microphoneStreamNode.disconnect(inputGainNodeRef.current);
         }
         diTrackStreamNodeRef.current.connect(inputGainNodeRef.current);
-      } else if (microphoneStreamNode) {
+      } else {
         diTrackStreamNodeRef.current.disconnect(inputGainNodeRef.current);
-        microphoneStreamNode.connect(inputGainNodeRef.current);
+        if (microphoneStreamNode) {
+          microphoneStreamNode.connect(inputGainNodeRef.current);
+        }
       }
     }
 

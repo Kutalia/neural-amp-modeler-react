@@ -7,20 +7,7 @@ export const InputDevice = ({ handleStream }) => {
   const [devices, setDevices] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState();
 
-  useEffect(() => {
-    window.navigator.mediaDevices
-      .enumerateDevices()
-      .then((devices) =>
-        devices.filter((device) => device.kind === 'audioinput')
-      ).then((devices) => {
-        if (devices.length) {
-          setDevices(devices);
-          setSelectedIndex(0);
-        }
-      });
-  }, []);
-
-  const setStreamByDeviceId = useCallback((deviceId) => {
+  const setStreamByDeviceId = useCallback(async (deviceId) => {
     const audioProps = {
       autoGainControl: false,
       echoCancellation: false,
@@ -31,19 +18,37 @@ export const InputDevice = ({ handleStream }) => {
       audioProps.deviceId = deviceId;
     }
 
-    navigator.mediaDevices.getUserMedia({
-      audio: audioProps,
-    }).then((mediaStream) => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: audioProps,
+      });
       handleStream(mediaStream);
-    }).catch((err) => {
+
+      return mediaStream;
+    } catch (err) {
       console.error('Error acquiring users input stream', err);
-    });
+      return null;
+    }
   }, [handleStream]);
 
   useEffect(() => {
     // set default input for the first time
     if (typeof selectedIndex !== 'number') {
-      setStreamByDeviceId();
+      setStreamByDeviceId().then((result) => {
+        if (result) {
+          // if media permissions successfuly invoked, enumerate devices
+          window.navigator.mediaDevices
+            .enumerateDevices()
+            .then((devices) =>
+              devices.filter((device) => device.kind === 'audioinput')
+            ).then((devices) => {
+              if (devices.length) {
+                setDevices(devices);
+                setSelectedIndex(0);
+              }
+            });
+        }
+      });
     }
   }, [setStreamByDeviceId, selectedIndex]);
 
