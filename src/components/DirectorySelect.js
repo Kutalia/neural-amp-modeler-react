@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import * as stylex from '@stylexjs/stylex';
 
+import { ReactComponent as FolderIcon } from './icons/folder.svg';
 import { styles } from '../styles';
 
 const webkitdirectorySupported = 'webkitdirectory' in document.createElement('input');
@@ -87,9 +88,7 @@ export const Comp = ({ label, fileExt, onFileSelect, disabled }) => {
     <div>
       <p>{label}</p>
       <div {...stylex.props(styles.directoryInputWrapper)}>
-        <img
-          src="folder.svg"
-          alt="Folder"
+        <FolderIcon
           onClick={handleOpenDirectory}
           {...stylex.props(styles.directoryButton)}
         />

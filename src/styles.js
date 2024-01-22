@@ -28,7 +28,9 @@ export const styles = stylex.create({
     paddingLeft: '2rem',
     boxSizing: 'border-box',
   },
-  a: {
+  socialLink: {
+    display: 'inline-block',
+    paddingRight: '1rem',
     color: '#F6AE2D',
     ':hover': {
       color: '#B07507',
@@ -36,7 +38,7 @@ export const styles = stylex.create({
   },
   social: {
     width: '3rem',
-    paddingRight: '1rem',
+    height: '3rem',
     filter: 'invert(1)',
   },
   inputDeviceWrapper: {

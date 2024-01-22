@@ -1,6 +1,12 @@
 import * as stylex from '@stylexjs/stylex';
 
 import { styles } from '../styles';
+import { ReactComponent as LinkedIn } from './icons/linkedin.svg';
+import { ReactComponent as Discord } from './icons/discord.svg';
+import { ReactComponent as Gmail } from './icons/gmail.svg';
+import { ReactComponent as Facebook } from './icons/facebook.svg';
+import { ReactComponent as YouTube } from './icons/youtube.svg';
+import { ReactComponent as GitHub } from './icons/github.svg';
 
 export const Footer = () => {
   const currentYear = (new Date()).getFullYear();
@@ -12,66 +18,54 @@ export const Footer = () => {
         href="https://www.linkedin.com/in/kote-kutalia"
         target="_blank"
         rel="noopener noreferrer"
-        {...stylex.props(styles.a)}
+        {...stylex.props(styles.socialLink)}
       >
-        <img
-          src="social_icons/linkedin.svg"
-          alt="LinkedIn"
-          {...stylex.props(styles.social)}
-        />
+        <LinkedIn {...stylex.props(styles.social)} />
       </a>
       <a
         href="https://github.com/kutalia"
         target="_blank"
         rel="noopener noreferrer"
-        {...stylex.props(styles.a)}
+        {...stylex.props(styles.socialLink)}
       >
-        <img
-          src="social_icons/github.svg"
-          alt="GitHub"
-          {...stylex.props(styles.social)}
-        />
+        <GitHub {...stylex.props(styles.social)} />
+      </a>
+      <a
+        href="https://discord.gg/mjAsMfMxSQ"
+        target="_blank"
+        rel="noopener noreferrer"
+        {...stylex.props(styles.socialLink)}
+      >
+        <Discord {...stylex.props(styles.social)} />
       </a>
       <a
         href="mailto:kotekutalia@gmail.com"
-        {...stylex.props(styles.a)}
+        {...stylex.props(styles.socialLink)}
       >
-        <img
-          src="social_icons/gmail.svg"
-          alt="Gmail"
-          {...stylex.props(styles.social)}
-        />
+        <Gmail {...stylex.props(styles.social)} />
       </a>
       <a
         href="https://www.facebook.com/kote.kutalia"
         target="_blank"
         rel="noopener noreferrer"
-        {...stylex.props(styles.a)}
+        {...stylex.props(styles.socialLink)}
       >
-        <img
-          src="social_icons/facebook.svg"
-          alt="Facebook"
-          {...stylex.props(styles.social)}
-        />
+        <Facebook {...stylex.props(styles.social)} />
       </a>
       <a
         href="https://www.youtube.com/user/kotekutalia"
         target="_blank"
         rel="noopener noreferrer"
-        {...stylex.props(styles.a)}
+        {...stylex.props(styles.socialLink)}
       >
-        <img
-          src="social_icons/youtube.svg"
-          alt="YouTube"
-          {...stylex.props(styles.social)}
-        />
+        <YouTube {...stylex.props(styles.social)} />
       </a>
       <p>
         Original plugin by <a
           href="https://www.neuralampmodeler.com"
           target="_blank"
           rel="noopener noreferrer"
-          {...stylex.props(styles.a)}
+          {...stylex.props(styles.socialLink)}
         >Steven Atkinson</a>
       </p>
     </div>
