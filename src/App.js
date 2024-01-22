@@ -18,6 +18,7 @@ function App() {
   const diAudioRef = useRef();
   const [useDiTrack, setUseDiTrack] = useState(null);
   const [ir, setIr] = useState(false);
+  const [useIr, setUseIr] = useState(false);
   const [audioContext, setAudioContext] = useState();
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const [profileLoading, setProfileLoading] = useState(false);
@@ -38,8 +39,15 @@ function App() {
 
     // disconnect old impulse response
     if (ir) {
-      audioWorkletNode.disconnect(ir);
-      ir.disconnect(outputGainNodeRef.current);
+      try {
+        // if previously inactive
+        audioWorkletNode.disconnect(outputGainNodeRef.current);
+        // if previously active
+        audioWorkletNode.disconnect(ir);
+        ir.disconnect(outputGainNodeRef.current);
+      } catch {
+        
+      }
     }
     // disconnect full-rig nam to reconnect it to ir
     else {
@@ -167,14 +175,17 @@ function App() {
       audioWorkletNode.connect(outputGainNodeRef.current);
     }
 
-    setIr(false);
+    setUseIr(false);
   };
 
-  const setUseIr = (e) => {
+  const handleUseIrChange = (e) => {
     const shouldUse = e.target.checked === true;
 
     if (shouldUse) {
-      setIr(null);
+      setUseIr(true);
+      if (ir) {
+        onCabChange(ir);
+      }
     } else {
       removeIr();
     }
@@ -268,11 +279,11 @@ function App() {
         <DirectorySelect
           label={<>
             <span>Use IR (upload after profile)&nbsp;</span>
-            <input id="use-ir" type="checkbox" onClick={setUseIr} />
+            <input id="use-ir" type="checkbox" onClick={handleUseIrChange} />
           </>}
           fileExt=".wav"
           onFileSelect={onIRInput}
-          disabled={ir === false || profileLoading || !audioContext}
+          disabled={useIr === false || profileLoading || !audioContext}
         />
       </div>
       <div>
