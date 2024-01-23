@@ -13,6 +13,7 @@ import { Announcement } from './components/Announcement';
 import { Footer } from './components/Footer';
 import { DirectorySelect } from './components/DirectorySelect';
 import { InputDevice } from './components/InputDevice';
+import { useDownloadProfiles } from './hooks/useDownloadProfiles';
 
 function App() {
   const diAudioRef = useRef();
@@ -23,6 +24,7 @@ function App() {
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const [profileLoading, setProfileLoading] = useState(false);
   const [useRightChannel, setUseRightChannel] = useState(false);
+  const { profiles: downloadedProfiles, irs: downloadedIrs, loading: downloading } = useDownloadProfiles();
 
   const microphoneStreamRef = useRef();
   const microphoneStreamNodeRef = useRef();
@@ -46,7 +48,7 @@ function App() {
         audioWorkletNode.disconnect(ir);
         ir.disconnect(outputGainNodeRef.current);
       } catch {
-        
+
       }
     }
     // disconnect full-rig nam to reconnect it to ir
@@ -254,14 +256,8 @@ function App() {
 
   return (
     <div className="app" {...stylex.props(styles.app)}>
-      <InputDevice handleStream={handleMicrophoneStreamChange} />
-      <p>
-        <label htmlFor="use-right-channel">
-          Use Right Channel <small>(try this if you're connected to a channel on an even position: Input 2, Input 4, etc.)</small>
-        </label>
-        &nbsp;
-        <input type="checkbox" id="use-right-channel" onChange={handleMicrophoneChannelChange} />
-      </p>
+      {/* Manual user interaction needed if profiles are preloaded (downloading, storage, etc.) */}
+      <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
 
       <Announcement />
       <div {...stylex.props(styles.amp)}>
@@ -274,7 +270,8 @@ function App() {
           label="Choose NAM profile"
           fileExt=".nam"
           onFileSelect={loadProfile}
-          disabled={profileLoading}
+          defaultFiles={downloadedProfiles}
+          disabled={profileLoading || downloading || !audioContext}
         />
         <DirectorySelect
           label={<>
@@ -283,7 +280,8 @@ function App() {
           </>}
           fileExt=".wav"
           onFileSelect={onIRInput}
-          disabled={useIr === false || profileLoading || !audioContext}
+          defaultFiles={downloadedIrs}
+          disabled={useIr === false || profileLoading || !audioContext || downloading || !audioContext}
         />
       </div>
       <div>
@@ -303,13 +301,19 @@ function App() {
         }
       </div>
 
-      <Analytics />
-      <SpeedInsights />
+      <InputDevice handleStream={handleMicrophoneStreamChange} />
+      <p>
+        <label htmlFor="use-right-channel">
+          Use Right Channel <small>(try this if you're connected to a channel on an even position: Input 2, Input 4, etc.)</small>
+        </label>
+        &nbsp;
+        <input type="checkbox" id="use-right-channel" onChange={handleMicrophoneChannelChange} />
+      </p>
 
       <Footer />
 
-      {/* Just another way to resume audioContext from wasm glue code */}
-      <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
+      <Analytics />
+      <SpeedInsights />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import * as stylex from '@stylexjs/stylex';
 
 import { ReactComponent as FolderIcon } from './icons/folder.svg';
@@ -7,7 +7,7 @@ import { styles } from '../styles';
 const webkitdirectorySupported = 'webkitdirectory' in document.createElement('input');
 const EmptyComp = () => null;
 
-export const Comp = ({ label, fileExt, onFileSelect, disabled }) => {
+export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled }) => {
   const [files, setFiles] = useState();
   const [selectedIndex, setSelectedIndex] = useState(0);
   // file name of an individual upload if it's not a directory mode
@@ -15,6 +15,15 @@ export const Comp = ({ label, fileExt, onFileSelect, disabled }) => {
 
   const fileInputRef = useRef();
   const directoryInputRef = useRef();
+
+  useEffect(() => {
+    // when files are preloaded for the first time
+    if (defaultFiles && !files && fileUploadName == null) {
+      setFiles(defaultFiles);
+      setSelectedIndex(0);
+      onFileSelect(defaultFiles[0]);
+    }
+  }, [defaultFiles, onFileSelect, files, fileUploadName]);
 
   const handleDirectoryChange = (e) => {
     if (!e.target.files?.length) {

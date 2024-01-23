@@ -16,7 +16,7 @@ export const styles = stylex.create({
     gap: '1rem',
   },
   workletResumer: {
-    display: 'none',
+    
   },
   highlighted: {
     color: 'rebeccapurple',
