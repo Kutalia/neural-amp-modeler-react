@@ -271,7 +271,7 @@ function App() {
           fileExt=".nam"
           onFileSelect={loadProfile}
           defaultFiles={downloadedProfiles}
-          disabled={profileLoading || downloading || !audioContext}
+          disabled={profileLoading || downloading || (downloadedProfiles && !audioContext)}
         />
         <DirectorySelect
           label={<>
@@ -281,7 +281,7 @@ function App() {
           fileExt=".wav"
           onFileSelect={onIRInput}
           defaultFiles={downloadedIrs}
-          disabled={useIr === false || profileLoading || !audioContext || downloading || !audioContext}
+          disabled={useIr === false || profileLoading || !audioContext || downloading || (downloadedIrs && !audioContext)}
         />
       </div>
       <div>
