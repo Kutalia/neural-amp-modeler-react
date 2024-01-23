@@ -280,7 +280,8 @@ function App() {
           </>}
           fileExt=".wav"
           onFileSelect={onIRInput}
-          defaultFiles={downloadedIrs}
+          // to eliminate a race condition between setting the first profile and the first ir
+          defaultFiles={audioContext && useIr && downloadedIrs}
           disabled={useIr === false || profileLoading || !audioContext || downloading || (downloadedIrs && !audioContext)}
         />
       </div>
