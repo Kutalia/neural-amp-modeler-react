@@ -26,5 +26,9 @@ export const useDownloadProfiles = () => {
     }
   }, []);
 
-  return { profiles, irs, loading };
+  return {
+    profiles: profiles?.length ? profiles : null,
+    irs: irs?.length ? irs: null,
+    loading
+  };
 };
