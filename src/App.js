@@ -17,14 +17,16 @@ import { useDownloadProfiles } from './hooks/useDownloadProfiles';
 
 function App() {
   const diAudioRef = useRef();
-  const [useDiTrack, setUseDiTrack] = useState(null);
   const [ir, setIr] = useState(false);
   const [useIr, setUseIr] = useState(false);
-  const [audioContext, setAudioContext] = useState();
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const [profileLoading, setProfileLoading] = useState(false);
   const [useRightChannel, setUseRightChannel] = useState(false);
   const { profiles: downloadedProfiles, irs: downloadedIrs, loading: downloading } = useDownloadProfiles();
+
+  // using these refs allow gettig latest values in microphone permission request handler which can be called anytime
+  const audioContextRef = useRef();
+  const useDiTrackRef = useRef();
 
   const microphoneStreamRef = useRef();
   const microphoneStreamNodeRef = useRef();
@@ -35,6 +37,8 @@ function App() {
   const outputGainRef = useRef(1);
   const inputChannelMergerRef = useRef();
   const inputChannelSplitterRef = useRef();
+
+  const audioContext = audioContextRef.current;
 
   const onCabChange = (cabConvolver) => {
     audioContext.resume();
@@ -106,7 +110,7 @@ function App() {
         const audioContext = node2;
 
         setAudioWorkletNode(audioWorkletNode);
-        setAudioContext(audioContext);
+        audioContextRef.current = audioContext;
 
         inputGainNodeRef.current = new GainNode(audioContext, { gain: inputGainRef.current });
         outputGainNodeRef.current = new GainNode(audioContext, { gain: outputGainRef.current });
@@ -141,7 +145,11 @@ function App() {
     }
   }, [useRightChannel]);
 
-  useEffect(() => {
+  const onInputModeChange = (e) => {
+    const useDiTrack = !!e.target.checked;
+
+    useDiTrackRef.current = useDiTrack;
+
     // if input mode is changed manually from the DOM
     if (useDiTrack !== null && diTrackStreamNodeRef.current && inputChannelSplitterRef.current) {
       const microphoneStreamNode = microphoneStreamNodeRef.current;
@@ -160,14 +168,6 @@ function App() {
     }
 
     window.useDiTrack = useDiTrack;
-  }, [useDiTrack]);
-
-  const onInputModeChange = (e) => {
-    if (e.target.checked) {
-      setUseDiTrack(true);
-    } else {
-      setUseDiTrack(false);
-    }
   };
 
   const removeIr = () => {
@@ -213,18 +213,18 @@ function App() {
 
   const handleMicrophoneStreamChange = (stream) => {
     // dsp already started
-    if (audioContext && inputChannelSplitterRef.current) {
+    if (audioContextRef.current && inputChannelSplitterRef.current) {
       // only disconnects if previously was used
       try {
         microphoneStreamNodeRef.current.disconnect(inputChannelSplitterRef.current);
       } catch (err) {
 
       } finally {
-        microphoneStreamNodeRef.current = audioContext.createMediaStreamSource(stream);
+        microphoneStreamNodeRef.current = audioContextRef.current.createMediaStreamSource(stream);
       }
 
       // put new input stream to use
-      if (!useDiTrack && diTrackStreamNodeRef.current) {
+      if (!useDiTrackRef.current && diTrackStreamNodeRef.current) {
         try {
           diTrackStreamNodeRef.current.disconnect(inputChannelSplitterRef.current);
         } catch (err) {

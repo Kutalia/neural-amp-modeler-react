@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import * as stylex from '@stylexjs/stylex';
 
 import { styles } from '../styles';
 
 export const InputDevice = ({ handleStream }) => {
-  const [devices, setDevices] = useState([]);
+  const devicesRef = useRef();
   const [selectedIndex, setSelectedIndex] = useState();
+  const needsToAskRef = useRef(true);
 
-  const setStreamByDeviceId = useCallback(async (deviceId) => {
+  const getStreamByDeviceId = useCallback(async (deviceId) => {
     const audioProps = {
       autoGainControl: false,
       echoCancellation: false,
@@ -22,20 +23,21 @@ export const InputDevice = ({ handleStream }) => {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: audioProps,
       });
-      handleStream(mediaStream);
 
       return mediaStream;
     } catch (err) {
       console.error('Error acquiring users input stream', err);
       return null;
     }
-  }, [handleStream]);
+  }, []);
 
   useEffect(() => {
     // set default input for the first time
-    if (typeof selectedIndex !== 'number') {
-      setStreamByDeviceId().then((result) => {
-        if (result) {
+    // to avoid stacking multiple permission asks
+    if (needsToAskRef.current) {
+      needsToAskRef.current = false;
+      getStreamByDeviceId().then((stream) => {
+        if (stream) {
           // if media permissions successfuly invoked, enumerate devices
           window.navigator.mediaDevices
             .enumerateDevices()
@@ -43,21 +45,25 @@ export const InputDevice = ({ handleStream }) => {
               devices.filter((device) => device.kind === 'audioinput')
             ).then((devices) => {
               if (devices.length) {
-                setDevices(devices);
+                devicesRef.current = devices;
                 setSelectedIndex(0);
+                handleStream(stream);
               }
             });
         }
       });
     }
-  }, [setStreamByDeviceId, selectedIndex]);
+  }, [getStreamByDeviceId, selectedIndex, handleStream]);
 
   const selectDevice = async (e) => {
     const index = e.target.value;
 
     setSelectedIndex(Number(index));
 
-    setStreamByDeviceId(devices[index].deviceId);
+    const stream = await getStreamByDeviceId(devicesRef.current[index].deviceId);
+    if (stream) {
+      handleStream(stream);
+    }
   };
 
   return (
@@ -68,7 +74,7 @@ export const InputDevice = ({ handleStream }) => {
         value={selectedIndex}
         {...stylex.props(styles.inputDevice)}
       >
-        {devices.map((device, index) => (
+        {devicesRef.current && devicesRef.current.map((device, index) => (
           <option key={device.deviceId} value={index}>
             {device.label}
           </option>
