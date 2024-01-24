@@ -149,6 +149,19 @@ export const styles = stylex.create({
     8px 8px,
     2.5rem 2.5rem`,
     backgroundRepeat: 'no-repeat',
+
+    ':focus': {
+      backgroundImage:
+        `linear-gradient(45deg, white 50%, transparent 50%),
+    linear-gradient(135deg, transparent 50%, white 50%),
+    linear-gradient(to right, gray, gray)`,
+      backgroundPosition:
+        `calc(100% - 1.25rem + 8px) calc(1rem - 4px),
+    calc(100% - 1.25rem) calc(1rem - 4px),
+    100% 0`,
+      borderColor: 'grey',
+      outline: 0,
+    }
   },
   selectWithoutExpander: {
     backgroundImage: 'none',
