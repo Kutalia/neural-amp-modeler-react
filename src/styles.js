@@ -1,11 +1,9 @@
 import * as stylex from '@stylexjs/stylex';
 
-const nightColor = 'rgb(12,9,16)';
-
 export const styles = stylex.create({
   app: {
     minHeight: '100vh',
-    background: `linear-gradient(145deg, ${nightColor} 0%, rgba(30,22,40,1) 44%, rgba(15,78,91,1) 100%)`,
+    background: 'linear-gradient(145deg, rgb(12,9,16) 0%, rgba(30,22,40,1) 44%, rgba(15,78,91,1) 100%)',
     padding: '1rem',
     boxSizing: 'border-box',
     color: 'white',
@@ -16,7 +14,7 @@ export const styles = stylex.create({
     gap: '1rem',
   },
   workletResumer: {
-    
+
   },
   highlighted: {
     color: 'rebeccapurple',
@@ -49,8 +47,10 @@ export const styles = stylex.create({
     width: '100%',
   },
   amp: {
+    width: '22rem',
+    maxWidth: 'calc(100% - 1rem)',
     backgroundColor: '#A393BF',
-    padding: '2rem 3rem',
+    padding: '2rem 0.5rem',
     borderRadius: '2rem',
     textAlign: 'center',
     display: 'flex',
@@ -89,8 +89,8 @@ export const styles = stylex.create({
     width: '100%',
     borderRadius: '16rem',
     background: '#FFFCFF',
-    border: `1px solid ${nightColor}`,
-    boxShadow: `3px 1px 12px rgb(51, 44, 57)`,
+    border: '1px solid rgb(12,9,16)',
+    boxShadow: '3px 1px 12px rgb(51, 44, 57)',
   },
   knobBaseThumbWrapper2: {
     position: 'absolute',
@@ -104,7 +104,7 @@ export const styles = stylex.create({
     height: '50%',
     width: '2px',
     transform: 'translateX(50%)',
-    background: nightColor,
+    background: 'rgb(12,9,16)',
   },
   directoryInputWrapper: {
     display: 'flex',
@@ -120,7 +120,41 @@ export const styles = stylex.create({
     cursor: 'pointer',
   },
   directoryFileSelect: {
-    width: '12rem',
-    margin: '0 0.5rem',
+    cursor: 'pointer',
+    width: '14rem',
+    margin: '0 0 0 0.5rem',
+    backgroundColor: 'white',
+    border: 'thin solid bluergb(12,9,16)',
+    borderRadius: '4px',
+    display: 'inline-block',
+    font: 'inherit',
+    lineHeight: '1.5rem',
+    padding: '0.2rem 3.3rem 0.2rem 0.8rem',
+    '-webkit-box-sizing': 'border-box',
+    '-moz-box-sizing': 'border-box',
+    'box-sizing': 'border-box',
+    '-webkit-appearance': 'none',
+    '-moz-appearance': 'none',
+
+    backgroundImage:
+      `linear-gradient(45deg, transparent 50%, rgb(12,9,16) 50%),
+    linear-gradient(135deg, rgb(12,9,16) 50%, transparent 50%),
+    linear-gradient(to right, skyblue, skyblue)`,
+    backgroundPosition:
+      `calc(100% - 1.25rem) calc(1rem - 2px),
+    calc(100% - 1.25rem + 8px) calc(1rem - 2px),
+    100% 0`,
+    backgroundSize:
+      `8px 8px,
+    8px 8px,
+    2.5rem 2.5rem`,
+    backgroundRepeat: 'no-repeat',
+  },
+  selectWithoutExpander: {
+    backgroundImage: 'none',
+    padding: '0.2rem 0.8rem',
+  },
+  directoryFileSelectDisabled: {
+    cursor: 'default',
   },
 });

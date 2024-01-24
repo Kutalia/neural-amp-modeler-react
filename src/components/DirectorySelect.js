@@ -106,7 +106,12 @@ export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled }) =
           onChange={handleSelectChange}
           onClick={handleSelectClick}
           disabled={disabled}
-          {...stylex.props(styles.directoryFileSelect)}
+          onMouseDown={e => { !files && e.preventDefault() }}
+          {...stylex.props(
+            styles.directoryFileSelect,
+            !files && styles.selectWithoutExpander,
+            disabled && styles.directoryFileSelectDisabled
+          )}
         >
           <option value="-1">{fileUploadName || 'Choose file'}</option>
           {
