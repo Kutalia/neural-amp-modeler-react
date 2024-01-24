@@ -252,7 +252,18 @@ function App() {
 
       splitter.connect(merger, useRight ? 1 : 0, 0);
     }
-  }
+  };
+
+  const handleDiTrackUpload = (e) => {
+    const { files } = e.target;
+    
+    if (!files.length) {
+      return;
+    }
+    
+    const blobUrl = URL.createObjectURL(files[0]);
+    diAudioRef.current.src = blobUrl;
+  };
 
   return (
     <div className="app" {...stylex.props(styles.app)}>
@@ -289,6 +300,9 @@ function App() {
         <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)&nbsp;</label>
         <input type="checkbox" id="input-mode" onChange={onInputModeChange} />
       </div>
+
+      <label htmlFor="di-track">Upload your clean track</label>
+      <input onChange={handleDiTrackUpload} type="file" id="di-track" />
       <audio controls ref={diAudioRef}>
         <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
       </audio>
