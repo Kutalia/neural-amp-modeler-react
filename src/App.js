@@ -297,10 +297,9 @@ function App() {
       </div>
 
       <DirectorySelect
-          label="Choose IR"
+          label="Choose your DI track"
           fileExt=".wav"
           onFileSelect={handleDiTrackUpload}
-          defaultFiles={downloadedProfiles}
         />
       <audio controls ref={diAudioRef}>
         <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
