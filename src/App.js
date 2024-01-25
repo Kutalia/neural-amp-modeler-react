@@ -9,7 +9,6 @@ import { readProfile } from './helpers/readProfile';
 import { styles } from './styles';
 import { KnobPercentage } from './components/knob/KnobPercentage';
 import { calcDbToLinear } from './helpers/scaleDb';
-import { Announcement } from './components/Announcement';
 import { Footer } from './components/Footer';
 import { DirectorySelect } from './components/DirectorySelect';
 import { InputDevice } from './components/InputDevice';
@@ -265,7 +264,6 @@ function App() {
       {/* Manual user interaction needed if profiles are preloaded (downloading, storage, etc.) */}
       <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
 
-      <Announcement />
       <div {...stylex.props(styles.amp)}>
         <h3 {...stylex.props(styles.ampTitle)}>Neural Amp Modeler Online</h3>
         <div {...stylex.props(styles.ampControls)}>
