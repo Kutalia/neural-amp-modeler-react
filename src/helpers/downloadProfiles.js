@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 
 const zip = new JSZip();
 
-const downloadBlob = (url) =>
+export const downloadBlob = (url) =>
   window.fetch(url)
     .then(res => res.blob());
 
@@ -28,8 +28,7 @@ const getFilesFromZip = (archive, filterByExt = '') => {
   return Promise.all(promises).then(() => files);
 };
 
-export const getFilesFromZipUrl = async (url, filterByExts = null) => {
-  const blob = await downloadBlob(url);
+export const getFilesFromZipBlob = async (blob, filterByExts = null) => {
   const archive = await zip.loadAsync(blob);
   let files = {};
 
