@@ -272,7 +272,7 @@ function App() {
         </div>
         <DirectorySelect
           label="Choose NAM profile"
-          fileExt=".nam"
+          fileExts={['.nam']}
           onFileSelect={loadProfile}
           defaultFiles={downloadedProfiles}
           disabled={profileLoading || downloading || (downloadedProfiles && !audioContext)}
@@ -283,7 +283,7 @@ function App() {
             <span>Use IR (upload after profile)&nbsp;</span>
             <input id="use-ir" type="checkbox" onClick={handleUseIrChange} />
           </>}
-          fileExt=".wav"
+          fileExts={['.wav']}
           onFileSelect={onIRInput}
           // to eliminate a race condition between setting the first profile and the first ir
           defaultFiles={audioContext && useIr && downloadedIrs}
@@ -297,15 +297,15 @@ function App() {
       </div>
 
       <DirectorySelect
-          label="Choose your DI track"
-          fileExt=".wav"
-          onFileSelect={handleDiTrackUpload}
-        />
+        label="Choose your DI track"
+        fileExts={['.wav', '.mp3']}
+        onFileSelect={handleDiTrackUpload}
+      />
       <audio controls ref={diAudioRef}>
-        <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
+        <source src={`${process.env.PUBLIC_URL}/Drop_D_Riff.mp3`} type="audio/mpeg" />
       </audio>
 
-      
+
       <div>
         {
           audioContext &&

@@ -7,7 +7,7 @@ import { styles } from '../styles';
 const webkitdirectorySupported = 'webkitdirectory' in document.createElement('input');
 const EmptyComp = () => null;
 
-export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled, dark }) => {
+export const Comp = ({ label, fileExts, onFileSelect, defaultFiles, disabled, dark }) => {
   const [files, setFiles] = useState();
   const [selectedIndex, setSelectedIndex] = useState(0);
   // file name of an individual upload if it's not a directory mode
@@ -31,7 +31,11 @@ export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled, dar
     }
 
     const filesArray = [...e.target.files];
-    const fileExtRegex = new RegExp(`.*(${fileExt})$`);
+
+    // escaping the first symbol given that file extensions start with dot
+    const regexedExts = fileExts.map(ext => `(\\${ext})`).join('|');
+
+    const fileExtRegex = new RegExp(`.*${regexedExts}$`);
     const filteredFiles = (filesArray.filter(
       ({ name }) => fileExtRegex.test(name))
     );
@@ -134,7 +138,7 @@ export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled, dar
         />
         <input
           type="file"
-          accept={fileExt}
+          accept={fileExts.join(',')}
           onChange={handleFileInput}
           ref={fileInputRef}
           {...stylex.props(styles.directoryHiddenInput)}
