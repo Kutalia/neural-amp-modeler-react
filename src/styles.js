@@ -59,9 +59,6 @@ export const styles = stylex.create({
     color: 'black',
     border: '1px solid #FFFCFF',
   },
-  ampTitle: {
-    fontFamily: 'effexor',
-  },
   ampControls: {
     display: 'flex',
     gap: '2rem',

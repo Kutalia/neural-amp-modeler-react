@@ -265,7 +265,7 @@ function App() {
       <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
 
       <div {...stylex.props(styles.amp)}>
-        <h3 {...stylex.props(styles.ampTitle)}>Neural Amp Modeler Online</h3>
+        <h3>Neural Amp Modeler Online</h3>
         <div {...stylex.props(styles.ampControls)}>
           <KnobPercentage label="Input" onChange={handleSetInputGain} />
           <KnobPercentage label="Output" onChange={handleSetOutputGain} />
