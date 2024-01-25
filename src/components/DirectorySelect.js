@@ -7,7 +7,7 @@ import { styles } from '../styles';
 const webkitdirectorySupported = 'webkitdirectory' in document.createElement('input');
 const EmptyComp = () => null;
 
-export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled }) => {
+export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled, dark }) => {
   const [files, setFiles] = useState();
   const [selectedIndex, setSelectedIndex] = useState(0);
   // file name of an individual upload if it's not a directory mode
@@ -35,6 +35,10 @@ export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled }) =
     const filteredFiles = (filesArray.filter(
       ({ name }) => fileExtRegex.test(name))
     );
+
+    if (!filteredFiles.length) {
+      return;
+    }
 
     setFiles(filteredFiles);
     setSelectedIndex(0);
@@ -99,7 +103,7 @@ export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled }) =
       <div {...stylex.props(styles.directoryInputWrapper)}>
         <FolderIcon
           onClick={handleOpenDirectory}
-          {...stylex.props(styles.directoryButton)}
+          {...stylex.props(styles.directoryButton, dark && styles.directoryButtonDarkMode)}
         />
         <select
           value={selectedIndex}
@@ -110,7 +114,8 @@ export const Comp = ({ label, fileExt, onFileSelect, defaultFiles, disabled }) =
           {...stylex.props(
             styles.directoryFileSelect,
             !files && styles.selectWithoutExpander,
-            disabled && styles.directoryFileSelectDisabled
+            disabled && styles.directoryFileSelectDisabled,
+            dark && styles.directoryFileSelectDarkMode,
           )}
         >
           <option value="-1">{fileUploadName || 'Choose file'}</option>

@@ -254,15 +254,10 @@ function App() {
     }
   };
 
-  const handleDiTrackUpload = (e) => {
-    const { files } = e.target;
-    
-    if (!files.length) {
-      return;
-    }
-    
-    const blobUrl = URL.createObjectURL(files[0]);
+  const handleDiTrackUpload = (file) => {
+    const blobUrl = URL.createObjectURL(file);
     diAudioRef.current.src = blobUrl;
+    diAudioRef.current.play();
   };
 
   return (
@@ -283,6 +278,7 @@ function App() {
           onFileSelect={loadProfile}
           defaultFiles={downloadedProfiles}
           disabled={profileLoading || downloading || (downloadedProfiles && !audioContext)}
+          dark
         />
         <DirectorySelect
           label={<>
@@ -294,6 +290,7 @@ function App() {
           // to eliminate a race condition between setting the first profile and the first ir
           defaultFiles={audioContext && useIr && downloadedIrs}
           disabled={useIr === false || profileLoading || !audioContext || downloading || (downloadedIrs && !audioContext)}
+          dark
         />
       </div>
       <div>
@@ -301,11 +298,17 @@ function App() {
         <input type="checkbox" id="input-mode" onChange={onInputModeChange} />
       </div>
 
-      <label htmlFor="di-track">Upload your clean track</label>
-      <input onChange={handleDiTrackUpload} type="file" id="di-track" />
+      <DirectorySelect
+          label="Choose IR"
+          fileExt=".wav"
+          onFileSelect={handleDiTrackUpload}
+          defaultFiles={downloadedProfiles}
+        />
       <audio controls ref={diAudioRef}>
         <source src={`${process.env.PUBLIC_URL}/LasseMagoDI.mp3`} type="audio/mpeg" />
       </audio>
+
+      
       <div>
         {
           audioContext &&

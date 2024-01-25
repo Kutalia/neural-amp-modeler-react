@@ -118,6 +118,10 @@ export const styles = stylex.create({
   directoryButton: {
     width: '2rem',
     cursor: 'pointer',
+    filter: 'invert(1)',
+  },
+  directoryButtonDarkMode: {
+    filter: 'none',
   },
   directoryFileSelect: {
     cursor: 'pointer',
@@ -162,6 +166,10 @@ export const styles = stylex.create({
       borderColor: 'grey',
       outline: 0,
     }
+  },
+  directoryFileSelectDarkMode: {
+    backgroundColor: 'rgb(12,9,16)',
+    color: 'white',
   },
   selectWithoutExpander: {
     backgroundImage: 'none',
