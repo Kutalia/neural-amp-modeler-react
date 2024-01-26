@@ -13,6 +13,7 @@ import { Footer } from './components/Footer';
 import { DirectorySelect } from './components/DirectorySelect';
 import { InputDevice } from './components/InputDevice';
 import { useDownloadProfiles } from './hooks/useDownloadProfiles';
+import { useModule } from './hooks/useModule';
 
 function App() {
   const diAudioRef = useRef();
@@ -22,6 +23,7 @@ function App() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [useRightChannel, setUseRightChannel] = useState(false);
   const { profiles: downloadedProfiles, irs: downloadedIrs, loading: downloading } = useDownloadProfiles();
+  const modulePromise = useModule();
 
   // using these refs allow gettig latest values in microphone permission request handler which can be called anytime
   const audioContextRef = useRef();
@@ -76,30 +78,31 @@ function App() {
 
     const jsonStr = await readProfile(file);
 
-    const { Module } = window
-    const ptr = Module._malloc(jsonStr.length + 1);
-    Module.stringToUTF8(jsonStr, ptr, jsonStr.length + 1)
+    modulePromise.then((Module) => {
+      const ptr = Module._malloc(jsonStr.length + 1);
+      Module.stringToUTF8(jsonStr, ptr, jsonStr.length + 1);
 
-    if (audioContext) {
-      audioContext.suspend();
-    }
-
-    await Module.ccall(
-      "setDsp",
-      null,
-      ["number"],
-      [ptr],
-      {
-        async: true,
+      if (audioContext) {
+        audioContext.suspend();
       }
-    )
 
-    Module._free(ptr);
-    if (audioContext) {
-      audioContext.resume();
-    }
+      Module.ccall(
+        "setDsp",
+        null,
+        ["number"],
+        [ptr],
+        {
+          async: true,
+        }
+      ).then(() => {
+        Module._free(ptr);
+        if (audioContext) {
+          audioContext.resume();
+        }
 
-    setProfileLoading(false);
+        setProfileLoading(false);
+      });
+    });
   };
 
   useEffect(() => {
@@ -287,7 +290,7 @@ function App() {
           onFileSelect={onIRInput}
           // to eliminate a race condition between setting the first profile and the first ir
           defaultFiles={audioContext && useIr && downloadedIrs}
-          disabled={useIr === false || profileLoading || !audioContext || downloading || (downloadedIrs && !audioContext)}
+          disabled={useIr === false || profileLoading || !audioContext || downloading}
           dark
         />
       </div>
