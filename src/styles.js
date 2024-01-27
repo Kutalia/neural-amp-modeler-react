@@ -29,6 +29,8 @@ export const styles = stylex.create({
   socialLink: {
     display: 'inline-block',
     paddingRight: '1rem',
+  },
+  link: {
     color: '#F6AE2D',
     ':hover': {
       color: '#B07507',

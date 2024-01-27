@@ -8,6 +8,7 @@ import { getCabConvolver } from './helpers/getCabConvolver';
 import { readProfile } from './helpers/readProfile';
 import { styles } from './styles';
 import { KnobPercentage } from './components/knob/KnobPercentage';
+import { Announcement } from './components/Announcement';
 import { calcDbToLinear } from './helpers/scaleDb';
 import { Footer } from './components/Footer';
 import { DirectorySelect } from './components/DirectorySelect';
@@ -264,6 +265,8 @@ function App() {
 
   return (
     <div className="app" {...stylex.props(styles.app)}>
+      <Announcement />
+
       {/* Manual user interaction needed if profiles are preloaded (downloading, storage, etc.) */}
       <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
 

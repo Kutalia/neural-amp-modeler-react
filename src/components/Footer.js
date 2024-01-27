@@ -45,7 +45,7 @@ export const Footer = () => {
         <Gmail {...stylex.props(styles.social)} />
       </a>
       <a
-        href="https://www.facebook.com/kote.kutalia"
+        href="https://www.facebook.com/people/Neural-Amp-Modeler-Online/61555763290703"
         target="_blank"
         rel="noopener noreferrer"
         {...stylex.props(styles.socialLink)}
@@ -65,7 +65,7 @@ export const Footer = () => {
           href="https://www.neuralampmodeler.com"
           target="_blank"
           rel="noopener noreferrer"
-          {...stylex.props(styles.socialLink)}
+          {...stylex.props(styles.link)}
         >Steven Atkinson</a>
       </p>
     </div>
