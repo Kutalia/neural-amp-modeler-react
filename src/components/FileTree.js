@@ -22,11 +22,11 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
       return;
     }
 
-    const { file, localPath, blobKey } = e;
+    const { file, localPath, blobKey, title } = e;
 
     setSelectedDirectory({
       key: blobKey,
-      title: localPath.slice(1),
+      title: title || localPath.slice(1),
     })
 
     const ext = getFileExt(file);
@@ -44,7 +44,7 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
   const handleDirectoryClick = (e) => {
     setSelectedDirectory({
       key: e.value.files[0].blobKey,
-      title: e.key,
+      title: e.title || e.key,
     });
   };
 
@@ -56,7 +56,7 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
       return;
     }
 
-    const promises = cachedBlobs.map(({ profilesUrl, profilesBlob }) =>
+    const promises = cachedBlobs.map(({ profilesUrl, profilesBlob, title }) =>
       getFilesFromZipBlob(profilesBlob).then(files => {
         if (files.length) {
           for (let i = 0; i < files.length; i++) {
@@ -64,8 +64,9 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
             newList.push({
               file,
               fileName: file.name,
-              localPath: `${profilesUrl.slice(profilesUrl.lastIndexOf('/'))}`,
+              localPath: title ? `/${title}` : `${profilesUrl.slice(profilesUrl.lastIndexOf('/'))}`,
               blobKey: profilesUrl,
+              title,
             });
           }
         }

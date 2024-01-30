@@ -62,7 +62,7 @@ export const getProfilesByKey = (key) => new Promise((resolve, reject) => {
   };
 });
 
-export const saveProfilesBlob = (key, blob) => new Promise((resolve, reject) => {
+export const saveProfilesBlob = (key, blob, title) => new Promise((resolve, reject) => {
   const DBOpenRequest = getDbOpenRequest();
 
   DBOpenRequest.onsuccess = async () => {
@@ -71,7 +71,7 @@ export const saveProfilesBlob = (key, blob) => new Promise((resolve, reject) => 
     // check if already saved in database
     let objectStore = db.transaction(PROFILES_STORE_NAME).objectStore(PROFILES_STORE_NAME);
 
-    const newItem = { [PROFILES_OBJ_KEY]: key, profilesBlob: blob };
+    const newItem = { [PROFILES_OBJ_KEY]: key, profilesBlob: blob, title };
 
     const transaction = db.transaction([PROFILES_STORE_NAME], 'readwrite');
 

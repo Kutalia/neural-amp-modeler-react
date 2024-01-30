@@ -16,11 +16,12 @@ export const useDownloadProfiles = () => {
   }, []);
 
   useEffect(() => {
-    let url = '';
+    let url = '', title = '';
 
     try {
       const { searchParams } = new URL(window.location.href);
       url = searchParams.get('profileUrl');
+      title = searchParams.get('title');
     } catch (err) {
       console.log('No preloaded profiles url or an invalid one');
     }
@@ -34,7 +35,7 @@ export const useDownloadProfiles = () => {
           window.fetch(url)
             .then(res => res.blob()).then(blob => {
               updateProfilesFromBlob(blob);
-              saveProfilesBlob(url, blob);
+              saveProfilesBlob(url, blob, title);
             });
         }
       });
