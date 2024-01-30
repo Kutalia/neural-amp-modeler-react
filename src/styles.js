@@ -199,4 +199,7 @@ export const styles = stylex.create({
   fileTreeLoading: {
     filter: 'grayscale(1)',
   },
+  selectedDirectory: {
+    textDecoration: 'underline',
+  },
 });

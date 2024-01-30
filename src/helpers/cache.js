@@ -13,7 +13,7 @@ export const upgradeDb = (event) => {
 
   // Create an objectStore for this database
   // currently using volatile profiles url as a key, better generate some unique id from api
-  const objectStore = db.createObjectStore('profiles', { keyPath: 'profilesUrl' });
+  const objectStore = db.createObjectStore(PROFILES_STORE_NAME, { keyPath: 'profilesUrl' });
 
   objectStore.createIndex('profilesBlob', 'profilesBlob', { unique: true });
 
@@ -73,7 +73,7 @@ export const saveProfilesBlob = (key, blob) => new Promise((resolve, reject) => 
 
     const newItem = { [PROFILES_OBJ_KEY]: key, profilesBlob: blob };
 
-    const transaction = db.transaction(['profiles'], 'readwrite');
+    const transaction = db.transaction([PROFILES_STORE_NAME], 'readwrite');
 
     transaction.oncomplete = () => {
       console.log('Downloaded profiles saving transaction completed');
@@ -85,7 +85,7 @@ export const saveProfilesBlob = (key, blob) => new Promise((resolve, reject) => 
       reject(reason);
     };
 
-    objectStore = transaction.objectStore('profiles');
+    objectStore = transaction.objectStore(PROFILES_STORE_NAME);
 
     const objectStoreRequest = objectStore.add(newItem);
 
@@ -103,11 +103,34 @@ export const saveProfilesBlob = (key, blob) => new Promise((resolve, reject) => 
   };
 });
 
+export const deleteBlobByKey = (key) => new Promise((resolve, reject) => {
+  const DBOpenRequest = getDbOpenRequest();
+
+  DBOpenRequest.onsuccess = () => {
+    const db = DBOpenRequest.result;
+
+    const transaction = db.transaction([PROFILES_STORE_NAME], 'readwrite');
+    transaction.objectStore(PROFILES_STORE_NAME).delete(key);
+
+    transaction.oncomplete = () => {
+      console.log(`Profiles blob with key ${key} successfully deleted`);
+      db.close();
+      resolve();
+    };
+
+    transaction.onerror = () => {
+      const reason = `Couldnt delete profiles blob with key ${key}`;
+      console.error(reason);
+      db.close();
+      reject(reason)
+    }
+  };
+});
+
 export const getAllSavedBlobs = () => new Promise((resolve, reject) => {
   const DBOpenRequest = getDbOpenRequest();
 
   DBOpenRequest.onsuccess = () => {
-
     const db = DBOpenRequest.result;
 
     // check if already saved in database

@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import {
   createFileTree,
   ToggleFileTree,
@@ -7,7 +7,7 @@ import * as stylex from '@stylexjs/stylex';
 
 import { styles } from '../styles';
 
-import { getAllSavedBlobs } from '../helpers/cache';
+import { deleteBlobByKey, getAllSavedBlobs } from '../helpers/cache';
 import { getFilesFromZipBlob } from '../helpers/unzipProfiles';
 
 const getFileExt = (file) => file.name.slice(file.name.lastIndexOf('.'));
@@ -15,13 +15,20 @@ const getRawFiles = (fileList, localPath, ext) => fileList.filter((f) => localPa
 
 export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
   const [fileList, setFileList] = useState([]);
+  const [selectedDirectory, setSelectedDirectory] = useState();
 
   const handleFileClick = (e) => {
     if (loading) {
       return;
     }
 
-    const { file, localPath } = e;
+    const { file, localPath, blobKey } = e;
+
+    setSelectedDirectory({
+      key: blobKey,
+      title: localPath.slice(1),
+    })
+
     const ext = getFileExt(file);
 
     // load all files of that type, just like in NAM plugin
@@ -34,45 +41,57 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
       loadIrs(files, index);
     }
   };
-  const handleDirectoryClick = () => { };
+  const handleDirectoryClick = (e) => {
+    setSelectedDirectory({
+      key: e.value.files[0].blobKey,
+      title: e.key,
+    });
+  };
 
-  useEffect(() => {
-    const func = async () => {
-      if (!refetch) {
-        return;
-      }
+  const readCacheToList = useCallback(async () => {
+    const cachedBlobs = await getAllSavedBlobs();
+    const newList = [];
 
-      const cachedBlobs = await getAllSavedBlobs();
-      const newList = [];
-
-      if (!cachedBlobs) {
-        return;
-      }
-
-      const promises = cachedBlobs.map(({ profilesUrl, profilesBlob }) =>
-        getFilesFromZipBlob(profilesBlob).then(files => {
-          if (files.length) {
-            for (let i = 0; i < files.length; i++) {
-              const file = files[i];
-              newList.push({
-                file,
-                fileName: file.name,
-                localPath: `${profilesUrl.slice(profilesUrl.lastIndexOf('/'))}`,
-              });
-            }
-          }
-        })
-      );
-
-      await Promise.all(promises);
-
-      setFileList(newList);
+    if (!cachedBlobs) {
+      return;
     }
 
-    func();
-  }, [refetch]);
+    const promises = cachedBlobs.map(({ profilesUrl, profilesBlob }) =>
+      getFilesFromZipBlob(profilesBlob).then(files => {
+        if (files.length) {
+          for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            newList.push({
+              file,
+              fileName: file.name,
+              localPath: `${profilesUrl.slice(profilesUrl.lastIndexOf('/'))}`,
+              blobKey: profilesUrl,
+            });
+          }
+        }
+      })
+    );
+
+    await Promise.all(promises);
+
+    setFileList(newList);
+  }, [])
+
+  useEffect(() => {
+    if (!refetch) {
+      return;
+    }
+    
+    readCacheToList();
+  }, [readCacheToList, refetch]);
 
   const fileTree = useMemo(() => createFileTree(fileList), [fileList]);
+
+  const deleteCachedBlob = () => {
+    if (window.confirm(`Are you sure? This will remove the entire selected directory (${selectedDirectory.title}) from the cache`)) {
+      deleteBlobByKey(selectedDirectory.key).then(readCacheToList);
+    }
+  };
 
   if (!fileList.length) {
     return null;
@@ -80,7 +99,16 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
 
   return (
     <div {...stylex.props(styles.fileTreeWrapper)}>
-      <p>Downloaded profiles{loading && <span>&nbsp;(loading...)</span>}</p>
+      <p>Downloaded profiles {loading && <span>(loading...)</span>}</p>
+      <p>Selected directory: {selectedDirectory
+        && <>
+          <span {...stylex.props(styles.selectedDirectory)}>
+            {selectedDirectory.title}
+          </span>
+          &nbsp;
+          <button onClick={deleteCachedBlob}>Delete</button>
+        </>
+      }</p>
       <div {...stylex.props(styles.fileTree)}>
         <div {...stylex.props(styles.fileTreeContent, loading && styles.fileTreeLoading)}>
           <ToggleFileTree
