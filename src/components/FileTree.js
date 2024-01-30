@@ -79,14 +79,16 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
   }
 
   return (
-    <div>
+    <div {...stylex.props(styles.fileTreeWrapper)}>
       <p>Downloaded profiles{loading && <span>&nbsp;(loading...)</span>}</p>
-      <div {...stylex.props(styles.fileTree, loading && styles.fileTreeLoading)}>
-        <ToggleFileTree
-          list={fileTree}
-          handleFileClick={handleFileClick}
-          handleDirectoryClick={handleDirectoryClick}
-        />
+      <div {...stylex.props(styles.fileTree)}>
+        <div {...stylex.props(styles.fileTreeContent, loading && styles.fileTreeLoading)}>
+          <ToggleFileTree
+            list={fileTree}
+            handleFileClick={handleFileClick}
+            handleDirectoryClick={handleDirectoryClick}
+          />
+        </div>
       </div>
     </div>
   );

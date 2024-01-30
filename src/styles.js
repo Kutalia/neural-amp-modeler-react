@@ -177,10 +177,24 @@ export const styles = stylex.create({
   directoryFileSelectDisabled: {
     cursor: 'default',
   },
+  fileTreeWrapper: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
   fileTree: {
+    overflow: 'hidden',
+    borderRadius: '0.5rem',
+    border: '1px solid white',
+    width: '600px',
+    maxWidth: '100%',
+  },
+  fileTreeContent: {
     height: '150px',
-    width: '400px',
     overflow: 'auto',
+    padding: '0.5rem',
+    boxSizing: 'border-box',
   },
   fileTreeLoading: {
     filter: 'grayscale(1)',
