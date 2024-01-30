@@ -22,11 +22,12 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
       return;
     }
 
-    const { file, localPath, blobKey, title } = e;
+    const { file, localPath, blobKey, blobTitle, blob } = e;
 
     setSelectedDirectory({
       key: blobKey,
-      title: title || localPath.slice(1),
+      title: blobTitle || localPath.slice(1),
+      blob,
     })
 
     const ext = getFileExt(file);
@@ -44,7 +45,8 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
   const handleDirectoryClick = (e) => {
     setSelectedDirectory({
       key: e.value.files[0].blobKey,
-      title: e.title || e.key,
+      title: e.key,
+      blob: e.value.files[0].blob,
     });
   };
 
@@ -66,7 +68,9 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
               fileName: file.name,
               localPath: title ? `/${title}` : `${profilesUrl.slice(profilesUrl.lastIndexOf('/'))}`,
               blobKey: profilesUrl,
-              title,
+              // blob of the directory zip it belongs to
+              blob: profilesBlob,
+              blobTitle: title,
             });
           }
         }
@@ -82,7 +86,7 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
     if (!refetch) {
       return;
     }
-    
+
     readCacheToList();
   }, [readCacheToList, refetch]);
 
@@ -108,6 +112,15 @@ export const FileTree = ({ loadProfiles, loadIrs, loading, refetch }) => {
           </span>
           &nbsp;
           <button onClick={deleteCachedBlob}>Delete</button>
+          &nbsp;
+          <a
+            download={`${selectedDirectory.title}.zip`}
+            href={
+              window.URL.createObjectURL(
+                new Blob([selectedDirectory.blob]),
+                { type: 'application/zip' }
+              )
+            }><button>Download</button></a>
         </>
       }</p>
       <div {...stylex.props(styles.fileTree)}>
