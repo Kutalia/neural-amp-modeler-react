@@ -177,4 +177,12 @@ export const styles = stylex.create({
   directoryFileSelectDisabled: {
     cursor: 'default',
   },
+  fileTree: {
+    height: '150px',
+    width: '400px',
+    overflow: 'auto',
+  },
+  fileTreeLoading: {
+    filter: 'grayscale(1)',
+  },
 });

@@ -1,13 +1,7 @@
 import JSZip from 'jszip';
 
-const zip = new JSZip();
-
-export const downloadBlob = (url) =>
-  window.fetch(url)
-    .then(res => res.blob());
-
 // for compatibility with directory select inputs
-const getFilesFromZip = (archive, filterByExt = '') => {
+const getFilesFromZip = async (archive, filterByExt = '') => {
   const filteredZipObjs = archive.filter((_, file) => !filterByExt || file.name.slice(-(filterByExt.length)) === filterByExt);
 
   const files = Array(filteredZipObjs.length), promises = [];
@@ -25,10 +19,12 @@ const getFilesFromZip = (archive, filterByExt = '') => {
       }));
   }
 
-  return Promise.all(promises).then(() => files);
+  await Promise.all(promises);
+  return files;
 };
 
 export const getFilesFromZipBlob = async (blob, filterByExts = null) => {
+  const zip = new JSZip();
   const archive = await zip.loadAsync(blob);
   let files = {};
 

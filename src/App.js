@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import * as stylex from '@stylexjs/stylex';
@@ -15,14 +15,16 @@ import { DirectorySelect } from './components/DirectorySelect';
 import { InputDevice } from './components/InputDevice';
 import { useDownloadProfiles } from './hooks/useDownloadProfiles';
 import { useModule } from './hooks/useModule';
+import { FileTree } from './components/FileTree';
 
 function App() {
-  const diAudioRef = useRef();
   const [ir, setIr] = useState(false);
   const [useIr, setUseIr] = useState(false);
   const [audioWorkletNode, setAudioWorkletNode] = useState();
   const [profileLoading, setProfileLoading] = useState(false);
   const [useRightChannel, setUseRightChannel] = useState(false);
+  const [loadedProfiles, setLoadedProfiles] = useState({ files: null, index: null });
+  const [loadedIrs, setLoadedIrs] = useState({ files: null, index: null });
   const { profiles: downloadedProfiles, irs: downloadedIrs, loading: downloading } = useDownloadProfiles();
   const modulePromise = useModule();
 
@@ -30,6 +32,7 @@ function App() {
   const audioContextRef = useRef();
   const useDiTrackRef = useRef();
 
+  const diAudioRef = useRef();
   const microphoneStreamRef = useRef();
   const microphoneStreamNodeRef = useRef();
   const diTrackStreamNodeRef = useRef();
@@ -42,7 +45,7 @@ function App() {
 
   const audioContext = audioContextRef.current;
 
-  const onCabChange = (cabConvolver) => {
+  const onCabChange = useCallback((cabConvolver) => {
     audioContext.resume();
 
     // disconnect old impulse response
@@ -65,16 +68,23 @@ function App() {
     audioWorkletNode.connect(cabConvolver);
     cabConvolver.connect(outputGainNodeRef.current);
     setIr(cabConvolver);
-  };
+  }, [audioContext, audioWorkletNode, ir]);
 
-  const onIRInput = (file) => {
+  const loadIr = useCallback((file, isCachedIr) => {
     if (audioContext) {
       file.arrayBuffer()
         .then(buffer => getCabConvolver(audioContext, buffer, onCabChange, ir));
     }
-  };
 
-  const loadProfile = async (file) => {
+    if (!isCachedIr) {
+      setLoadedIrs((irs) => ({
+        files: irs.files,
+        index: null,
+      }));
+    }
+  }, [ir, audioContext, onCabChange]);
+
+  const loadProfile = useCallback(async (file) => {
     setProfileLoading(true);
 
     const jsonStr = await readProfile(file);
@@ -104,7 +114,7 @@ function App() {
         setProfileLoading(false);
       });
     });
-  };
+  }, [modulePromise, audioContext]);
 
   useEffect(() => {
     if (!window.wasmAudioWorkletCreated) {
@@ -188,8 +198,13 @@ function App() {
 
     if (shouldUse) {
       setUseIr(true);
-      if (ir) {
+      // if ir was manually uploaded
+      if (ir && loadedIrs.index == null) {
         onCabChange(ir);
+      } else {
+        if (loadedIrs.files) {
+          loadIr(loadedIrs.files[loadedIrs.index || 0], true);
+        }
       }
     } else {
       removeIr();
@@ -263,9 +278,35 @@ function App() {
     diAudioRef.current.play();
   };
 
+  const handleLoadProfiles = useCallback((files, index) => {
+    setLoadedProfiles({ files, index });
+    loadProfile(files[index]);
+  }, [loadProfile]);
+
+  const handleLoadIrs = useCallback((files, index) => {
+    setLoadedIrs({ files, index });
+    if (useIr) {
+      loadIr(files[index], true);
+    }
+  }, [loadIr, useIr]);
+
+  useEffect(() => {
+    // only load downloaded files if no previous profiles were loaded manually
+    // this improves ux by not replacing manually inputted files and avoids rerenders bugs related to everchanging dependency refs
+    if (!loadedProfiles.files && downloadedProfiles) {
+      handleLoadProfiles(downloadedProfiles, 0);
+    }
+
+    if (!loadedIrs.files && downloadedIrs) {
+      handleLoadIrs(downloadedIrs, 0);
+    }
+  }, [loadProfile, downloadedProfiles, downloadedIrs, loadedProfiles, loadedIrs, handleLoadProfiles, handleLoadIrs]);
+
   return (
     <div className="app" {...stylex.props(styles.app)}>
       <Announcement />
+
+      <FileTree loadProfiles={handleLoadProfiles} loadIrs={handleLoadIrs} loading={profileLoading || downloading} refetch={!downloading} />
 
       {/* Manual user interaction needed if profiles are preloaded (downloading, storage, etc.) */}
       <button id="audio-worklet-resumer" {...stylex.props(styles.workletResumer)} disabled={window.audioWorkletNode}>Start/Resume playing</button>
@@ -280,19 +321,21 @@ function App() {
           label="Choose NAM profile"
           fileExts={['.nam']}
           onFileSelect={loadProfile}
-          defaultFiles={downloadedProfiles}
+          defaultIndex={loadedProfiles.index == null ? 0 : loadedProfiles.index}
+          defaultFiles={loadedProfiles.files}
           disabled={profileLoading || downloading || (downloadedProfiles && !audioContext)}
           dark
         />
         <DirectorySelect
           label={<>
             <span>Use IR (upload after profile)&nbsp;</span>
-            <input id="use-ir" type="checkbox" onClick={handleUseIrChange} />
+            <input id="use-ir" type="checkbox" onClick={handleUseIrChange} disabled={!audioWorkletNode} />
           </>}
           fileExts={['.wav']}
-          onFileSelect={onIRInput}
+          onFileSelect={loadIr}
+          defaultIndex={loadedIrs.index == null ? 0 : loadedIrs.index}
           // to eliminate a race condition between setting the first profile and the first ir
-          defaultFiles={audioContext && useIr && downloadedIrs}
+          defaultFiles={loadedIrs.files}
           disabled={useIr === false || profileLoading || !audioContext || downloading}
           dark
         />

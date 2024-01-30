@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import { downloadBlob, getFilesFromZipBlob } from '../helpers/downloadProfiles';
+import { getFilesFromZipBlob } from '../helpers/unzipProfiles';
+import { saveProfilesBlob, getProfilesByKey } from '../helpers/cache';
 
 export const useDownloadProfiles = () => {
   const [profiles, setProfiles] = useState();
@@ -25,72 +26,18 @@ export const useDownloadProfiles = () => {
     }
 
     if (url) {
-      const DBOpenRequest = window.indexedDB.open('profiles');
-      let db;
-
-      DBOpenRequest.onsuccess = async (event) => {
-        db = DBOpenRequest.result;
-
-        // check if already saved in database
-        let objectStore = db.transaction('profiles').objectStore('profiles');
-        objectStore.openCursor().onsuccess = async (event) => {
-          const cursor = event.target.result;
-
-          // download and save as it's not cached
-          if (!cursor) {
-            setLoading(true);
-
-            const blob = await downloadBlob(url);
-            updateProfilesFromBlob(blob);
-
-            const newItem = { profilesUrl: url, profilesBlob: blob };
-
-            const transaction = db.transaction(['profiles'], 'readwrite');
-
-            transaction.oncomplete = () => {
-              console.log('Downloaded profiles saving transaction completed');
-            };
-            transaction.onerror = () => {
-              console.error('Error in downloaded profiles saving transaction');
-            };
-
-            objectStore = transaction.objectStore('profiles');
-
-            const objectStoreRequest = objectStore.add(newItem);
-
-            objectStoreRequest.onsuccess = (event) => {
-              console.log('Downloaded profile object storing success');
-            };
-            objectStoreRequest.onerror = (event) => {
-              console.error('Downloaded profile object storing error');
-            };
-
-            return;
-          }
-
-          if (cursor.key !== url) {
-            cursor.continue();
-            return;
-          }
-
-          const blob = cursor.value.profilesBlob;
-
-          console.log('Profiles blob located in IndexedDB, updating app state');
-          updateProfilesFromBlob(blob);
+      getProfilesByKey(url).then((cachedBlob) => {
+        if (cachedBlob) {
+          updateProfilesFromBlob(cachedBlob);
+        } else {
+          setLoading(true);
+          window.fetch(url)
+            .then(res => res.blob()).then(blob => {
+              updateProfilesFromBlob(blob);
+              saveProfilesBlob(url, blob);
+            });
         }
-      };
-
-      DBOpenRequest.onupgradeneeded = (event) => {
-        const db = event.target.result;
-
-        // Create an objectStore for this database
-        // currently using volatile profiles url as a key, better generate some unique id from api
-        const objectStore = db.createObjectStore('profiles', { keyPath: 'profilesUrl' });
-
-        objectStore.createIndex('profilesBlob', 'profilesBlob', { unique: true });
-
-        console.log('Profile files object store created');
-      };
+      });
     }
   }, [updateProfilesFromBlob]);
 
