@@ -202,4 +202,9 @@ export const styles = stylex.create({
   selectedDirectory: {
     textDecoration: 'underline',
   },
+  audioMeter: {
+    border: '1px solid white',
+    display: 'flex',
+    height: '100%',
+  },
 });

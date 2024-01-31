@@ -17,6 +17,7 @@ import { useDownloadProfiles } from './hooks/useDownloadProfiles';
 import { useModule } from './hooks/useModule';
 import { FileTree } from './components/FileTree';
 import { FrequencyMeter } from './components/spectrogram/FrequencyMeter';
+import { AudioMeter } from './components/AudioMeter';
 
 function App() {
   const [ir, setIr] = useState(false);
@@ -315,8 +316,10 @@ function App() {
       <div {...stylex.props(styles.amp)}>
         <h3>Neural Amp Modeler Online</h3>
         <div {...stylex.props(styles.ampControls)}>
+          <AudioMeter audioSource={inputGainNodeRef.current} />
           <KnobPercentage label="Input" onChange={handleSetInputGain} />
           <KnobPercentage label="Output" onChange={handleSetOutputGain} />
+          <AudioMeter audioSource={outputGainNodeRef.current} />
         </div>
         <DirectorySelect
           label="Choose NAM profile"
@@ -366,7 +369,7 @@ function App() {
         }
       </div>
 
-      {window.document.body.clientWidth > 1000 && <FrequencyMeter audioSource={outputGainNodeRef.current} /> }
+      {window.document.body.clientWidth > 1000 && <FrequencyMeter audioSource={outputGainNodeRef.current} />}
 
       <InputDevice handleStream={handleMicrophoneStreamChange} />
       <p>
