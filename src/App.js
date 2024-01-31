@@ -16,6 +16,7 @@ import { InputDevice } from './components/InputDevice';
 import { useDownloadProfiles } from './hooks/useDownloadProfiles';
 import { useModule } from './hooks/useModule';
 import { FileTree } from './components/FileTree';
+import { FrequencyMeter } from './components/spectrogram/FrequencyMeter';
 
 function App() {
   const [ir, setIr] = useState(false);
@@ -364,6 +365,8 @@ function App() {
           </>
         }
       </div>
+
+      {window.document.body.clientWidth > 1000 && <FrequencyMeter audioSource={outputGainNodeRef.current} /> }
 
       <InputDevice handleStream={handleMicrophoneStreamChange} />
       <p>

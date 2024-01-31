@@ -1,0 +1,17 @@
+.frequency-meter {
+	background-color: white;
+	position: relative;
+	display: block;
+	margin: 10pt;
+}
+.frequency-meter text {
+	font-size: 8pt;
+	fill: #424242;
+}
+.frequency-meter line {
+	stroke: #424242;
+}
+.frequency-meter path {
+	stroke: #0CABAE;
+	fill: rgba(12,171,174,0.3);
+}
