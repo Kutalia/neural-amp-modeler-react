@@ -152,6 +152,9 @@ function App() {
         }
 
         inputChannelSplitterRef.current.connect(inputChannelMergerRef.current, useRightChannel ? 1 : 0, 0);
+        // duplication the connection on the second audio merger channel as well to retain original audio level instead of cutting in half
+        inputChannelSplitterRef.current.connect(inputChannelMergerRef.current, useRightChannel ? 1 : 0, 1);
+
         inputChannelMergerRef.current.connect(inputGainNodeRef.current);
         inputGainNodeRef.current.connect(audioWorkletNode);
         audioWorkletNode.connect(outputGainNodeRef.current);
