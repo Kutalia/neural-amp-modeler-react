@@ -63,8 +63,8 @@ export const styles = stylex.create({
   },
   ampControls: {
     display: 'flex',
-    gap: '2rem',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    padding: '0 0.5rem',
   },
   knobBase: {
     width: '4rem',
@@ -75,11 +75,11 @@ export const styles = stylex.create({
     alignItems: 'center',
     outline: 'none',
   },
-  knobHeadleess: {
+  knobHeadless: {
     position: 'relative',
     margin: '0.5rem 0',
-    width: '4rem',
-    height: '4rem',
+    width: '3rem',
+    height: '3rem',
     outline: 'none',
   },
   knobBaseThumbWrapper: {

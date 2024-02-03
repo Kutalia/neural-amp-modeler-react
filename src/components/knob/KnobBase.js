@@ -56,7 +56,7 @@ export function KnobBase({
       <KnobHeadless
         id={knobId}
         aria-labelledby={labelId}
-        {...stylex.props(styles.knobHeadleess)}
+        {...stylex.props(styles.knobHeadless)}
         valueMin={valueMin}
         valueMax={valueMax}
         valueRaw={valueRaw}

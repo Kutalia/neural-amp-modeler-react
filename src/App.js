@@ -234,6 +234,19 @@ function App() {
     }
   };
 
+  const handleSetNoiseGateThreshold = (val) => {
+    if (window._setNoiseGateThreshold) {
+      window._setNoiseGateThreshold(val);
+    }
+  };
+
+  const handleSetNoiseGateState = (e) => {
+    const useGate = !!e.target.checked;
+    if (window._setNoiseGateState) {
+      window._setNoiseGateState(useGate);
+    }
+  };
+
   const handleMicrophoneStreamChange = (stream) => {
     // dsp already started
     if (audioContextRef.current && inputChannelSplitterRef.current) {
@@ -321,6 +334,10 @@ function App() {
         <div {...stylex.props(styles.ampControls)}>
           <AudioMeter audioSource={inputGainNodeRef.current} />
           <KnobPercentage label="Input" onChange={handleSetInputGain} />
+          <KnobPercentage
+            label={<div>Gate&nbsp;<input type="checkbox" defaultChecked onChange={handleSetNoiseGateState} /></div>}
+            onChange={handleSetNoiseGateThreshold} valueMin={-100} valueMax={0} valueDefault={-80}
+          />
           <KnobPercentage label="Output" onChange={handleSetOutputGain} />
           <AudioMeter audioSource={outputGainNodeRef.current} />
         </div>
