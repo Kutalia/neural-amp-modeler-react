@@ -18,6 +18,7 @@ import { useModule } from './hooks/useModule';
 import { FileTree } from './components/FileTree';
 import { FrequencyMeter } from './components/spectrogram/FrequencyMeter';
 import { AudioMeter } from './components/AudioMeter';
+import { setupVisualizer } from './components/AudioVisualizer';
 
 function App() {
   const [ir, setIr] = useState(false);
@@ -44,6 +45,7 @@ function App() {
   const outputGainRef = useRef(1);
   const inputChannelMergerRef = useRef();
   const inputChannelSplitterRef = useRef();
+  const visualizerRef = useRef();
 
   const audioContext = audioContextRef.current;
 
@@ -159,6 +161,9 @@ function App() {
         inputGainNodeRef.current.connect(audioWorkletNode);
         audioWorkletNode.connect(outputGainNodeRef.current);
         outputGainNodeRef.current.connect(audioContext.destination);
+
+        const visualizer = setupVisualizer(visualizerRef.current, audioContext);
+        outputGainNodeRef.current.connect(visualizer);
       };
     }
   }, [useRightChannel]);
@@ -363,6 +368,7 @@ function App() {
           disabled={useIr === false || profileLoading || !audioContext || downloading}
           dark
         />
+        <canvas ref={visualizerRef} width={300} {...stylex.props(!audioContext && styles.hiddenVisualizer)} />
       </div>
       <div>
         <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)&nbsp;</label>

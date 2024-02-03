@@ -207,4 +207,7 @@ export const styles = stylex.create({
     display: 'flex',
     height: '100%',
   },
+  hiddenVisualizer: {
+    display: 'none',
+  },
 });
