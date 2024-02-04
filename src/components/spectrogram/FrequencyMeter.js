@@ -283,5 +283,8 @@ export function getLogPathData({ width, height, data, maxValue }) {
     stringValue += `L${x},${y}`;
   }
 
+  // To fill the bottom right of the rectangle
+  stringValue += `L${width},${height}`;
+
   return `${stringValue}Z`;
 }
