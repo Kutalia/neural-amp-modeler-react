@@ -63,6 +63,8 @@ export const styles = stylex.create({
   },
   ampControls: {
     display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'flex-end',
     justifyContent: 'space-between',
     padding: '0 0.5rem',
   },
@@ -208,6 +210,42 @@ export const styles = stylex.create({
     height: '100%',
   },
   hiddenVisualizer: {
+    display: 'none',
+  },
+  reverbControls: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    padding: '0 0.5rem',
+    gap: '1rem',
+  },
+  controlsCategorySwitch: {
+    display: 'flex',
+    justifyContent: 'center',
+    borderRadius: '0.5rem',
+    overflow: 'hidden',
+    margin: 'auto',
+  },
+  controlsCategory: {
+    background: 'rgb(15,78,91)',
+    cursor: 'pointer',
+    padding: '0.3rem',
+    color: 'white',
+    borderRight: '2px solid white',
+    ':last-child': {
+      borderRight: 'none',
+    },
+    ':hover': {
+      background: 'rgb(12,9,16)',
+      opacity: 1,
+    },
+    opacity: 0.5,
+  },
+  controlsCategoryActive: {
+    opacity: 1,
+  },
+  hide: {
     display: 'none',
   },
 });

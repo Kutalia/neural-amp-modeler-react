@@ -7,7 +7,7 @@ import './normalize.css';
 import { getCabConvolver } from './helpers/getCabConvolver';
 import { readProfile } from './helpers/readProfile';
 import { styles } from './styles';
-import { KnobPercentage } from './components/knob/KnobPercentage';
+import { KnobDb } from './components/knob/KnobDb';
 import { Announcement } from './components/Announcement';
 import { calcDbToLinear } from './helpers/scaleDb';
 import { Footer } from './components/Footer';
@@ -19,6 +19,9 @@ import { FileTree } from './components/FileTree';
 import { FrequencyMeter } from './components/spectrogram/FrequencyMeter';
 import { AudioMeter } from './components/AudioMeter';
 import { setupVisualizer } from './components/AudioVisualizer';
+import { Reverb } from './components/Reverb';
+import { ControlsCategorySwitch } from './components/ControlsCategorySwitch';
+import { categories } from './components/ControlsCategorySwitch';
 
 function App() {
   const [ir, setIr] = useState(false);
@@ -28,6 +31,8 @@ function App() {
   const [useRightChannel, setUseRightChannel] = useState(false);
   const [loadedProfiles, setLoadedProfiles] = useState({ files: null, index: null });
   const [loadedIrs, setLoadedIrs] = useState({ files: null, index: null });
+  const [controlsCategory, setControlsCategory] = useState(categories[0]);
+  const [postFxHeadNode, setPostFxHeadNode] = useState();
   const { profiles: downloadedProfiles, irs: downloadedIrs, loading: downloading } = useDownloadProfiles();
   const modulePromise = useModule();
 
@@ -48,6 +53,7 @@ function App() {
   const visualizerRef = useRef();
 
   const audioContext = audioContextRef.current;
+  const nodeWorkletConnectedTo = postFxHeadNode ? postFxHeadNode : outputGainNodeRef.current;
 
   const onCabChange = useCallback((cabConvolver) => {
     audioContext.resume();
@@ -56,23 +62,23 @@ function App() {
     if (ir) {
       try {
         // if previously inactive
-        audioWorkletNode.disconnect(outputGainNodeRef.current);
+        audioWorkletNode.disconnect(nodeWorkletConnectedTo);
         // if previously active
         audioWorkletNode.disconnect(ir);
-        ir.disconnect(outputGainNodeRef.current);
+        ir.disconnect(nodeWorkletConnectedTo);
       } catch {
 
       }
     }
-    // disconnect full-rig nam to reconnect it to ir
+    // disconnect cabinetless full-rig nam to reconnect it to ir
     else {
-      audioWorkletNode.disconnect(outputGainNodeRef.current);
+      audioWorkletNode.disconnect(nodeWorkletConnectedTo);
     }
 
     audioWorkletNode.connect(cabConvolver);
-    cabConvolver.connect(outputGainNodeRef.current);
+    cabConvolver.connect(nodeWorkletConnectedTo);
     setIr(cabConvolver);
-  }, [audioContext, audioWorkletNode, ir]);
+  }, [audioContext, audioWorkletNode, ir, nodeWorkletConnectedTo]);
 
   const loadIr = useCallback((file, isCachedIr) => {
     if (audioContext) {
@@ -196,8 +202,8 @@ function App() {
   const removeIr = () => {
     if (audioContext && ir) {
       audioWorkletNode.disconnect(ir);
-      ir.disconnect(outputGainNodeRef.current);
-      audioWorkletNode.connect(outputGainNodeRef.current);
+      ir.disconnect(nodeWorkletConnectedTo);
+      audioWorkletNode.connect(nodeWorkletConnectedTo);
     }
 
     setUseIr(false);
@@ -336,16 +342,27 @@ function App() {
 
       <div {...stylex.props(styles.amp)}>
         <h3>Neural Amp Modeler Online</h3>
-        <div {...stylex.props(styles.ampControls)}>
+
+        <ControlsCategorySwitch onChange={setControlsCategory} selectedCategory={controlsCategory} />
+        <div {...stylex.props(styles.ampControls, controlsCategory !== categories[0] && styles.hide)}>
           <AudioMeter audioSource={inputGainNodeRef.current} />
-          <KnobPercentage label="Input" onChange={handleSetInputGain} />
-          <KnobPercentage
+          <KnobDb label="Input" onChange={handleSetInputGain} />
+          <KnobDb
             label={<div>Gate&nbsp;<input type="checkbox" defaultChecked onChange={handleSetNoiseGateState} /></div>}
             onChange={handleSetNoiseGateThreshold} valueMin={-100} valueMax={0} valueDefault={-80}
           />
-          <KnobPercentage label="Output" onChange={handleSetOutputGain} />
+          <KnobDb label="Output" onChange={handleSetOutputGain} />
           <AudioMeter audioSource={outputGainNodeRef.current} />
         </div>
+        <div {...stylex.props(controlsCategory !== categories[1] && styles.hide)}>
+          <Reverb
+            audioContext={audioContext}
+            sourceNode={useIr && ir ? ir : audioWorkletNode}
+            destinationNode={outputGainNodeRef.current}
+            onNodeChange={setPostFxHeadNode}
+          />
+        </div>
+
         <DirectorySelect
           label="Choose NAM profile"
           fileExts={['.nam']}

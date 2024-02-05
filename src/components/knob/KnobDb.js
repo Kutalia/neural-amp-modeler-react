@@ -1,11 +1,11 @@
 import { KnobBase } from './KnobBase';
 
-export function KnobPercentage(props) {
-  const valueRawDisplayFn = (valueRaw) =>
-    `${valueRawRoundFn((valueRaw / props.valueMax) * 100)}%`;
-
+export function KnobDb(props) {
   return (
     <KnobBase
+      valueDefault={valueDefault}
+      valueMin={valueMin}
+      valueMax={valueMax}
       stepFn={stepFn}
       stepLargerFn={stepLargerFn}
       valueRawRoundFn={valueRawRoundFn}
@@ -15,6 +15,11 @@ export function KnobPercentage(props) {
   );
 }
 
+const valueMin = -20;
+const valueMax = 20;
+const valueDefault = 0;
 const stepFn = (valueRaw) => 1;
 const stepLargerFn = (valueRaw) => 10;
 const valueRawRoundFn = Math.round;
+const valueRawDisplayFn = (valueRaw) =>
+  `${valueRawRoundFn(valueRaw)}dB`;
