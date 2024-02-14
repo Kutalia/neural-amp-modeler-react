@@ -7,14 +7,22 @@ export const styles = stylex.create({
     padding: '1rem',
     boxSizing: 'border-box',
     color: 'white',
+  },
+  ampWrapper: {
     display: 'flex',
     flexDirection: 'column',
     width: '100%',
     alignItems: 'center',
     gap: '1rem',
   },
-  workletResumer: {
-
+  header: {
+    display: 'flex',
+    gap: '1rem',
+    justifyContent: 'center',
+  },
+  about: {
+    maxWidth: '50rem',
+    margin: 'auto',
   },
   highlighted: {
     color: 'rebeccapurple',
