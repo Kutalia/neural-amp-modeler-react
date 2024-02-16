@@ -73,7 +73,8 @@ self.addEventListener('message', (event) => {
 
 // Runtime cache needed files like from the public folder
 const publicFilesRoute = new Route(({ request }) => {
-  return ['manifest', 'image', 'audio', 'script', 'audioworklet', 'worker'].indexOf(request.destination) !== -1
+  return ['manifest', 'image', 'audio', 'audioworklet', 'worker'].indexOf(request.destination) !== -1
     || request.url.slice(-5) === '.wasm'
+    || request.url.indexOf('loadwebmodel.js') !== -1
 }, new StaleWhileRevalidate());
 registerRoute(publicFilesRoute);

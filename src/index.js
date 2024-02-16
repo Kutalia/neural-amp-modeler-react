@@ -18,4 +18,10 @@ root.render(
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
 
-serviceWorkerRegistration.register();
+// only use offline-first PWA in standalone mode (when launching from desktop, taskbar, etc.)
+const mqStandAlone = '(display-mode: standalone)';
+if ((navigator.standalone || window.matchMedia(mqStandAlone).matches)) {
+  serviceWorkerRegistration.register();
+} else {
+  serviceWorkerRegistration.unregister();
+}
