@@ -18,7 +18,19 @@ export const AudioMeter = ({ audioSource }) => {
       return;
     }
 
-    const process = function (audioAnalyser) {
+    let idObj = { id: null };
+
+    const audioCtx = audioSource.context;
+
+    const audioAnalyser = audioCtx.createAnalyser();
+    audioAnalyser.fftSize = fftSize;
+    audioAnalyser.minDecibels = -100;
+    audioAnalyser.maxDecibels = 0;
+    audioAnalyser.smoothingTimeConstant = 0.95;
+
+    const process = function () {
+      idObj.id = requestAnimationFrame(process);
+
       const buf = new Float32Array(fftSize);
       audioAnalyser.getFloatTimeDomainData(buf);
       let x;
@@ -42,22 +54,14 @@ export const AudioMeter = ({ audioSource }) => {
       canvasCtxRef.current.fillRect(0, canvasCtxRef.current.canvas.height * (-volumeRef.current / minDb), canvasCtxRef.current.canvas.width, canvasCtxRef.current.canvas.height + 100);
     };
 
-    const audioCtx = audioSource.context;
-
-    const audioAnalyser = audioCtx.createAnalyser();
-    audioAnalyser.fftSize = fftSize;
-    audioAnalyser.minDecibels = -100;
-    audioAnalyser.maxDecibels = 0;
-    audioAnalyser.smoothingTimeConstant = 0.95;
-
     audioSource.connect(audioAnalyser);
-    
-    const id = setInterval(() => process(audioAnalyser));
+
+    setTimeout(() => process());
 
     canvasCtxRef.current = canvas.getContext('2d');
 
     return (() => {
-      clearInterval(id);
+      idObj.id && cancelAnimationFrame(idObj.id);
       audioSource.disconnect(audioAnalyser);
     });
   }, [canvas, audioSource]);

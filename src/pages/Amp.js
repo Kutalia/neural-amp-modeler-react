@@ -20,11 +20,13 @@ import { setupVisualizer } from '../components/AudioVisualizer';
 import { Reverb } from '../components/Reverb';
 import { ControlsCategorySwitch } from '../components/ControlsCategorySwitch';
 import { categories } from '../components/ControlsCategorySwitch';
+import { Tuner } from '../components/tuner/Tuner';
 
 export const Amp = () => {
   const [ir, setIr] = useState(false);
   const [useIr, setUseIr] = useState(false);
   const [audioWorkletNode, setAudioWorkletNode] = useState();
+  const [microphoneStream, setMicrophoneStream] = useState();
   const [profileLoading, setProfileLoading] = useState(false);
   const [useRightChannel, setUseRightChannel] = useState(false);
   const [loadedProfiles, setLoadedProfiles] = useState({ files: null, index: null });
@@ -39,7 +41,6 @@ export const Amp = () => {
   const useDiTrackRef = useRef();
 
   const diAudioRef = useRef();
-  const microphoneStreamRef = useRef();
   const microphoneStreamNodeRef = useRef();
   const diTrackStreamNodeRef = useRef();
   const inputGainNodeRef = useRef();
@@ -125,7 +126,7 @@ export const Amp = () => {
   }, [modulePromise, audioContext]);
 
   useEffect(() => {
-    if (!window.wasmAudioWorkletCreated) {
+    if (!audioWorkletNode) {
       window.wasmAudioWorkletCreated = (node1, node2) => {
         const audioWorkletNode = node1;
         const audioContext = node2;
@@ -143,7 +144,6 @@ export const Amp = () => {
         inputChannelMergerRef.current = audioContext.createChannelMerger(2);
         inputChannelSplitterRef.current = audioContext.createChannelSplitter(2);
 
-        const microphoneStream = microphoneStreamRef.current;
         let microphoneStreamNode;
 
         if (microphoneStream) {
@@ -170,7 +170,7 @@ export const Amp = () => {
         outputGainNodeRef.current.connect(visualizer);
       };
     }
-  }, [useRightChannel]);
+  }, [audioWorkletNode, useRightChannel, microphoneStream]);
 
   const onInputModeChange = (e) => {
     const useDiTrack = !!e.target.checked;
@@ -280,8 +280,7 @@ export const Amp = () => {
       }
     }
 
-    // if dsp is not yet started, it will be used for node creation on start
-    microphoneStreamRef.current = stream;
+    setMicrophoneStream(stream);
   };
 
   const handleMicrophoneChannelChange = (e) => {
@@ -360,6 +359,7 @@ export const Amp = () => {
             onNodeChange={setPostFxHeadNode}
           />
         </div>
+        {controlsCategory === categories[2] && <Tuner audioStream={microphoneStream} useRightChannel={useRightChannel} />}
 
         <DirectorySelect
           label="Choose NAM profile"
