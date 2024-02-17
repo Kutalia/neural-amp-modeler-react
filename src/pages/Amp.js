@@ -21,6 +21,7 @@ import { Reverb } from '../components/Reverb';
 import { ControlsCategorySwitch } from '../components/ControlsCategorySwitch';
 import { categories } from '../components/ControlsCategorySwitch';
 import { Tuner } from '../components/tuner/Tuner';
+import { Delay } from '../components/Delay';
 
 export const Amp = () => {
   const [ir, setIr] = useState(false);
@@ -32,7 +33,7 @@ export const Amp = () => {
   const [loadedProfiles, setLoadedProfiles] = useState({ files: null, index: null });
   const [loadedIrs, setLoadedIrs] = useState({ files: null, index: null });
   const [controlsCategory, setControlsCategory] = useState(categories[0]);
-  const [postFxHeadNode, setPostFxHeadNode] = useState();
+  const [postFxNodes, setPostFxNodes] = useState(Array(2));
   const { profiles: downloadedProfiles, irs: downloadedIrs, loading: downloading } = useDownloadProfiles();
   const modulePromise = useModule();
 
@@ -52,7 +53,7 @@ export const Amp = () => {
   const visualizerRef = useRef();
 
   const audioContext = audioContextRef.current;
-  const nodeWorkletConnectedTo = postFxHeadNode ? postFxHeadNode : outputGainNodeRef.current;
+  const nodeWorkletConnectedTo = postFxNodes[postFxNodes.length - 1] ? postFxNodes[postFxNodes.length - 1] : outputGainNodeRef.current;
 
   const onCabChange = useCallback((cabConvolver) => {
     audioContext.resume();
@@ -352,14 +353,24 @@ export const Amp = () => {
           <AudioMeter audioSource={outputGainNodeRef.current} />
         </div>
         <div {...stylex.props(controlsCategory !== categories[1] && styles.hide)}>
-          <Reverb
+          <Delay
             audioContext={audioContext}
             sourceNode={useIr && ir ? ir : audioWorkletNode}
-            destinationNode={outputGainNodeRef.current}
-            onNodeChange={setPostFxHeadNode}
+            destinationNode={postFxNodes[1] || outputGainNodeRef.current}
+            onNodeChange={setPostFxNodes}
+            postFxIndex={0}
           />
         </div>
-        {controlsCategory === categories[2] && <Tuner audioStream={microphoneStream} useRightChannel={useRightChannel} />}
+        <div {...stylex.props(controlsCategory !== categories[2] && styles.hide)}>
+          <Reverb
+            audioContext={audioContext}
+            sourceNode={postFxNodes[0] || (useIr && ir ? ir : audioWorkletNode)}
+            destinationNode={outputGainNodeRef.current}
+            onNodeChange={setPostFxNodes}
+            postFxIndex={1}
+          />
+        </div>
+        {controlsCategory === categories[3] && <Tuner audioStream={microphoneStream} useRightChannel={useRightChannel} />}
 
         <DirectorySelect
           label="Choose NAM profile"
@@ -383,7 +394,7 @@ export const Amp = () => {
           disabled={useIr === false || profileLoading || !audioContext || downloading}
           dark
         />
-        <canvas ref={visualizerRef} width={300} {...stylex.props(!audioContext && styles.hiddenVisualizer)} />
+        <canvas ref={visualizerRef} width={300} {...stylex.props(styles.visualizer, !audioContext && styles.hiddenVisualizer)} />
       </div>
       <div>
         <label htmlFor="input-mode">Use DI track for testing (bypasses microphone)&nbsp;</label>

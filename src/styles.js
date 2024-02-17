@@ -267,13 +267,17 @@ export const styles = stylex.create({
     display: 'flex',
     height: '100%',
   },
+  visualizer: {
+    width: '300px',
+    margin: 'auto',
+  },
   hiddenVisualizer: {
     display: 'none',
   },
-  reverbControls: {
+  postFxControls: {
     display: 'flex',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'flex-end',
     padding: '0 0.5rem',
     gap: '1rem',

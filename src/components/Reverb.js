@@ -5,7 +5,7 @@ import { styles } from '../styles';
 import { KnobPercentage } from './knob/KnobPercentage';
 import { camelToStartCase } from '../helpers/camelToStartCase';
 
-export const Reverb = ({ audioContext, sourceNode, destinationNode, onNodeChange }) => {
+export const Reverb = ({ audioContext, sourceNode, destinationNode, onNodeChange, postFxIndex }) => {
   const [reverb, setReverb] = useState();
   const [active, setActive] = useState(false);
   const reverbDestroyParamRef = useRef();
@@ -19,7 +19,7 @@ export const Reverb = ({ audioContext, sourceNode, destinationNode, onNodeChange
         reverbDestroyParamRef.current = reverb.parameters.get('destroy');
         setReverb(reverb);
       }
-    }
+    };
 
     createReverb();
   }, [audioContext, destinationNode, sourceNode, reverb, onNodeChange]);
@@ -31,7 +31,11 @@ export const Reverb = ({ audioContext, sourceNode, destinationNode, onNodeChange
         reverb.disconnect(destinationNode);
         sourceNode.connect(destinationNode);
         // the reverb components internally stores audio node but tells the parent component if it's used or not
-        onNodeChange(null);
+        onNodeChange((nodes) => {
+          const newNodes = [...nodes];
+          newNodes[postFxIndex] = null;
+          return newNodes;
+        });
       } catch (err) { }
     };
 
@@ -41,11 +45,15 @@ export const Reverb = ({ audioContext, sourceNode, destinationNode, onNodeChange
       } catch (err) { }
       sourceNode.connect(reverb);
       reverb.connect(destinationNode);
-      onNodeChange(reverb);
+      onNodeChange((nodes) => {
+        const newNodes = [...nodes];
+        newNodes[postFxIndex] = reverb;
+        return newNodes;
+      });
 
       return cleanup;
     }
-  }, [audioContext, destinationNode, sourceNode, reverb, active, onNodeChange]);
+  }, [audioContext, destinationNode, sourceNode, reverb, active, onNodeChange, postFxIndex]);
 
   useEffect(() => {
     return () => {
@@ -87,7 +95,7 @@ export const Reverb = ({ audioContext, sourceNode, destinationNode, onNodeChange
         <label htmlFor="reverb">Dattorro Reverb</label>&nbsp;
         <input type="checkbox" id="reverb" onClick={() => setActive((active) => !active)} />
       </h4>
-      <div {...stylex.props(styles.reverbControls)}>
+      <div {...stylex.props(styles.postFxControls)}>
         {knobs}
       </div>
     </div>

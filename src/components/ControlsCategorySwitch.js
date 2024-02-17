@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 
 import { styles } from '../styles';
 
-export const categories = ['Amp', 'PostFX', 'Tuner'];
+export const categories = ['Amp', 'Delay', 'Reverb', 'Tuner'];
 
 export const ControlsCategorySwitch = ({ onChange, selectedCategory }) => {
   return (
