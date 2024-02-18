@@ -149,8 +149,7 @@ export const styles = stylex.create({
     width: '100%',
     borderRadius: '16rem',
     background: '#FFFCFF',
-    border: '1px solid rgb(12,9,16)',
-    boxShadow: '3px 1px 12px rgb(51, 44, 57)',
+    boxShadow: 'inset 0 -3px 1px rgba(0, 0, 0, 0.2), inset 0 3px 1px rgba(255, 255, 255, 0.9), 0px 0px rgba(0, 0, 0, 0.1), 0px 1px 2px rgba(0, 0, 0, 0.05), -1px 2px 2px rgba(0, 0, 0, 0.04737), -2px 3px 2px rgba(0, 0, 0, 0.04474), -3px 4px 2px rgba(0, 0, 0, 0.04211), -4px 5px 2px rgba(0, 0, 0, 0.03947), -5px 6px 2px rgba(0, 0, 0, 0.03684), -6px 7px 2px rgba(0, 0, 0, 0.03421), -7px 8px 2px rgba(0, 0, 0, 0.03158), -8px 9px 2px rgba(0, 0, 0, 0.02895), -9px 10px 2px rgba(0, 0, 0, 0.02632), -10px 11px 2px rgba(0, 0, 0, 0.02368), -11px 12px 2px rgba(0, 0, 0, 0.02105), -12px 13px 2px rgba(0, 0, 0, 0.01842), -13px 14px 2px rgba(0, 0, 0, 0.01579), -14px 15px 2px rgba(0, 0, 0, 0.01316), -15px 16px 2px rgba(0, 0, 0, 0.01053), -16px 17px 2px rgba(0, 0, 0, 0.00789), -17px 18px 2px rgba(0, 0, 0, 0.00526), -18px 19px 2px rgba(0, 0, 0, 0.00263), -19px 20px 2px transparent',
   },
   knobBaseThumbWrapper2: {
     position: 'absolute',
