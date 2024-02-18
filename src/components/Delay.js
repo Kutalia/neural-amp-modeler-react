@@ -13,7 +13,10 @@ const knobParams = {
     default: Tone.FeedbackDelay.getDefaults().delayTime,
     min: 0.1,
     max: 2,
-    getOnChange: (delayNodes) => (value) => { delayNodes.delay.delayTime.value = value; },
+    getOnChange: (delayNodes) => (value) => {
+      delayNodes.feedbackDelay.delayTime.value = value;
+      delayNodes.pingPongDelay.delayTime.value = value;
+    },
     KnobComp: KnobPercentage,
   },
   feedback: {
@@ -21,7 +24,10 @@ const knobParams = {
     default: Tone.FeedbackDelay.getDefaults().feedback,
     min: 0,
     max: 1,
-    getOnChange: (delayNodes) => (value) => { delayNodes.delay.feedback.value = value; },
+    getOnChange: (delayNodes) => (value) => {
+      delayNodes.feedbackDelay.feedback.value = value;
+      delayNodes.pingPongDelay.feedback.value = value;
+    },
     KnobComp: KnobPercentage,
   },
   highPassCutoff: {
@@ -34,9 +40,9 @@ const knobParams = {
   },
   lowPassCutoff: {
     label: 'high cut',
-    default: 15000,
+    default: 10000,
     min: 1000,
-    max: 20000,
+    max: 12000,
     getOnChange: (delayNodes) => (value) => { delayNodes.lowPass.frequency.value = value; },
     KnobComp: KnobFrequency,
   },
@@ -56,12 +62,17 @@ const knobParams = {
 export const Delay = ({ audioContext, sourceNode, destinationNode, onNodeChange, postFxIndex }) => {
   const [delayNodes, setDelayNodes] = useState();
   const [active, setActive] = useState(false);
+  const [pingPong, setPingPong] = useState(false);
 
+  // audio nodes initialization
   useEffect(() => {
     if (audioContext && sourceNode && destinationNode && !delayNodes) {
       Tone.setContext(audioContext);
-      const delay = new Tone.FeedbackDelay({ delayTime: knobParams.delayTime.default, maxDelay: knobParams.delayTime.max });
-      delay.wet.set(1);
+      const delayParams = { delayTime: knobParams.delayTime.default, maxDelay: knobParams.delayTime.max };
+      const feedbackDelay = new Tone.FeedbackDelay(delayParams);
+      const pingPongDelay = new Tone.PingPongDelay(delayParams);
+      feedbackDelay.wet.set(1);
+      pingPongDelay.wet.set(1);
       const lowPass = new Tone.BiquadFilter(knobParams.lowPassCutoff.default, 'lowpass');
       const highPass = new Tone.BiquadFilter(knobParams.highPassCutoff.default, 'highpass');
       const dryNode = new GainNode(audioContext, { gain: 1 - knobParams.wet.default });
@@ -69,16 +80,19 @@ export const Delay = ({ audioContext, sourceNode, destinationNode, onNodeChange,
       // for merging dry and wet signals
       const finalNode = new GainNode(audioContext);
 
-      setDelayNodes({ delay, lowPass, highPass, dryNode, wetNode, finalNode });
+      setDelayNodes({ feedbackDelay, pingPongDelay, lowPass, highPass, dryNode, wetNode, finalNode });
     }
   }, [audioContext, destinationNode, sourceNode, delayNodes, onNodeChange]);
 
+  // cleanup and audio nodes hooking
   useEffect(() => {
+    const delayKey = pingPong ? 'pingPongDelay' : 'feedbackDelay';
+
     const cleanup = () => {
       try {
         sourceNode.disconnect(delayNodes.dryNode);
-        Tone.disconnect(sourceNode, delayNodes.delay);
-        Tone.disconnect(delayNodes.delay, delayNodes.lowPass);
+        Tone.disconnect(sourceNode, delayNodes[delayKey]);
+        Tone.disconnect(delayNodes[delayKey], delayNodes.lowPass);
         Tone.disconnect(delayNodes.lowPass, delayNodes.highPass);
         Tone.disconnect(delayNodes.highPass, delayNodes.wetNode);
         Tone.disconnect(delayNodes.wetNode, delayNodes.finalNode);
@@ -98,8 +112,8 @@ export const Delay = ({ audioContext, sourceNode, destinationNode, onNodeChange,
         sourceNode.disconnect(destinationNode);
       } catch (err) { }
       sourceNode.connect(delayNodes.dryNode);
-      Tone.connect(sourceNode, delayNodes.delay);
-      Tone.connect(delayNodes.delay, delayNodes.lowPass);
+      Tone.connect(sourceNode, delayNodes[delayKey]);
+      Tone.connect(delayNodes[delayKey], delayNodes.lowPass);
       Tone.connect(delayNodes.lowPass, delayNodes.highPass);
       Tone.connect(delayNodes.highPass, delayNodes.wetNode);
       Tone.connect(delayNodes.wetNode, delayNodes.finalNode);
@@ -113,7 +127,7 @@ export const Delay = ({ audioContext, sourceNode, destinationNode, onNodeChange,
 
       return cleanup;
     }
-  }, [active, audioContext, destinationNode, sourceNode, delayNodes, onNodeChange, postFxIndex]);
+  }, [active, audioContext, destinationNode, sourceNode, delayNodes, onNodeChange, postFxIndex, pingPong]);
 
   const knobs = useMemo(() => {
     if (!delayNodes) {
@@ -146,8 +160,15 @@ export const Delay = ({ audioContext, sourceNode, destinationNode, onNodeChange,
   return (
     <div>
       <h4>
-        <label htmlFor="delay">Delay</label>&nbsp;
-        <input type="checkbox" id="delay" onClick={() => setActive((active) => !active)} />
+        <span>
+          <label htmlFor="delay">Delay</label>&nbsp;
+          <input type="checkbox" id="delay" onClick={() => setActive((active) => !active)} />
+        </span>
+        &nbsp;
+        <span>
+          <label htmlFor="ping-pong">Ping Pong</label>&nbsp;
+          <input type="checkbox" id="ping-pong" onClick={() => setPingPong((pingPong) => !pingPong)} />
+        </span>
       </h4>
       <div {...stylex.props(styles.postFxControls)}>
         {knobs}
