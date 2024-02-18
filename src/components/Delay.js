@@ -4,6 +4,7 @@ import * as Tone from 'tone';
 
 import { styles } from '../styles';
 import { KnobPercentage } from './knob/KnobPercentage';
+import { KnobFrequency } from './knob/KnobFrequency';
 import { camelToStartCase } from '../helpers/camelToStartCase';
 
 const knobParams = {
@@ -13,6 +14,7 @@ const knobParams = {
     min: 0.1,
     max: 2,
     getOnChange: (delayNodes) => (value) => { delayNodes.delay.delayTime.value = value; },
+    KnobComp: KnobPercentage,
   },
   feedback: {
     label: 'feedback',
@@ -20,20 +22,23 @@ const knobParams = {
     min: 0,
     max: 1,
     getOnChange: (delayNodes) => (value) => { delayNodes.delay.feedback.value = value; },
-  },
-  lowPassCutoff: {
-    label: 'high pass',
-    default: 20000,
-    min: 0,
-    max: 20000,
-    getOnChange: (delayNodes) => (value) => { delayNodes.lowPass.frequency.value = value; },
+    KnobComp: KnobPercentage,
   },
   highPassCutoff: {
-    label: 'low pass',
-    default: 20,
-    min: 0,
-    max: 400,
+    label: 'low cut',
+    default: 60,
+    min: 50,
+    max: 700,
     getOnChange: (delayNodes) => (value) => { delayNodes.highPass.frequency.value = value; },
+    KnobComp: KnobFrequency,
+  },
+  lowPassCutoff: {
+    label: 'high cut',
+    default: 15000,
+    min: 1000,
+    max: 20000,
+    getOnChange: (delayNodes) => (value) => { delayNodes.lowPass.frequency.value = value; },
+    KnobComp: KnobFrequency,
   },
   wet: {
     label: 'wet',
@@ -44,6 +49,7 @@ const knobParams = {
       delayNodes.dryNode.gain.value = 1 - value;
       delayNodes.wetNode.gain.value = value;
     },
+    KnobComp: KnobPercentage,
   }
 };
 
@@ -118,8 +124,9 @@ export const Delay = ({ audioContext, sourceNode, destinationNode, onNodeChange,
 
     for (const nodeKey in knobParams) {
       const knob = knobParams[nodeKey];
+      const { KnobComp } = knob;
 
-      knobs.push(<KnobPercentage
+      knobs.push(<KnobComp
         key={knob.label}
         label={camelToStartCase(knob.label)}
         valueMin={knob.min}

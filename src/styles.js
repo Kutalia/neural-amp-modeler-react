@@ -32,6 +32,7 @@ export const styles = stylex.create({
     position: 'relative',
     color: '#d0d7dc',
     marginBottom: '20px',
+    lineHeight: 1,
   },
   tunerResult: {
     display: 'flex',
