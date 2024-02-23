@@ -33,7 +33,7 @@ export const About = () => {
           Cached profiles will be retrievable through a file tree after you reopen the website from the same browser
         </li>
         <li>The website uses state of the art web technologies behind the scenes.&nbsp;
-          There are some compatibility issues for browsers like FireFox on Android, Safari on iOS and etc.</li>
+          There are some compatibility issues for browsers like Firefox on Android, Safari on iOS and etc.</li>
         <li>There is a noticeable latency when playing on older systems, especially those running on Windows.&nbsp;
           This is due to how Web Audio internally works, because of it's limitations there's hardly anything I can do to improve latency</li>
         <li>If you encounter more issues please contact me on social links posted below</li>

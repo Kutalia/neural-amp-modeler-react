@@ -91,6 +91,7 @@ export const styles = stylex.create({
   },
   link: {
     color: '#F6AE2D',
+    transition: 'color 0.2s',
     ':hover': {
       color: '#B07507',
     },
@@ -295,6 +296,7 @@ export const styles = stylex.create({
     padding: '0.3rem',
     color: 'white',
     borderRight: '2px solid white',
+    transition: 'background 0.4s',
     ':last-child': {
       borderRight: 'none',
     },
