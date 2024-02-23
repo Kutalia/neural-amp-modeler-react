@@ -34,8 +34,8 @@ const getCents = (frequency, note) => {
 
 export const analyzeNote = (buf) => {
   const detectPitch = new Pitchfinder.AMDF({
-    maxFrequency: 800,
-    minFrequency: 50
+    maxFrequency: 1400,
+    minFrequency: 50,
   });
   const pitch = detectPitch(buf);
   if (pitch) {
