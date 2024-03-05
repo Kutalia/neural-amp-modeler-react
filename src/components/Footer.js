@@ -68,6 +68,17 @@ export const Footer = () => {
           {...stylex.props(styles.link)}
         >Steven Atkinson</a>
       </p>
+      <small>
+        Default profile by&nbsp;
+        <a
+          href="https://tonehunt.org/ViciousAudio"
+          target="_blank"
+          rel="noopener noreferrer"
+          {...stylex.props(styles.link)}
+        >
+          Vicious Audio
+        </a>
+      </small>
     </div>
   );
 };

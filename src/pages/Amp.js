@@ -22,6 +22,7 @@ import { ControlsCategorySwitch } from '../components/ControlsCategorySwitch';
 import { categories } from '../components/ControlsCategorySwitch';
 import { Tuner } from '../components/tuner/Tuner';
 import { Delay } from '../components/Delay';
+import { downloadDefaultProfile } from '../helpers/downloadDefaultProfile';
 
 export const Amp = () => {
   const [ir, setIr] = useState(false);
@@ -329,6 +330,13 @@ export const Amp = () => {
     }
   }, [loadProfile, downloadedProfiles, downloadedIrs, loadedProfiles, loadedIrs, handleLoadProfiles, handleLoadIrs]);
 
+  const loadDefaultProfile = async () => {
+    if (!loadedProfiles.files?.length && !profileLoading && !downloading) {
+      const profile = await downloadDefaultProfile();
+      handleLoadProfiles([profile], 0);
+    }
+  };
+
   return (
     <div className="app" {...stylex.props(styles.ampWrapper)}>
       <Announcement />
@@ -336,7 +344,7 @@ export const Amp = () => {
       <FileTree loadProfiles={handleLoadProfiles} loadIrs={handleLoadIrs} loading={profileLoading || downloading} refetch={!downloading} />
 
       {/* Manual user interaction needed if profiles are preloaded (downloading, storage, etc.) */}
-      <button id="audio-worklet-resumer" disabled={window.audioWorkletNode}>Start/Resume playing</button>
+      <button id="audio-worklet-resumer" disabled={window.audioWorkletNode || profileLoading || downloading} onClick={loadDefaultProfile}>Start/Resume playing</button>
 
       <div {...stylex.props(styles.amp)}>
         <h3>Neural Amp Modeler Online</h3>

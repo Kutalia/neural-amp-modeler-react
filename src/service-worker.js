@@ -75,6 +75,7 @@ self.addEventListener('message', (event) => {
 const publicFilesRoute = new Route(({ request }) => {
   return ['manifest', 'image', 'audio', 'audioworklet', 'worker'].indexOf(request.destination) !== -1
     || request.url.slice(-5) === '.wasm'
+    || request.url.slice(-4) === '.nam'
     || request.url.indexOf('loadwebmodel.js') !== -1
 }, new StaleWhileRevalidate());
 registerRoute(publicFilesRoute);
